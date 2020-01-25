@@ -2,6 +2,8 @@
 
 This library provides access to the Helix Twitch API.
 
+Note: This is a work in progress and may not provide full functionality.
+
 ## Installation
 
 Run:
