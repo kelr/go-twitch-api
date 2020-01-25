@@ -674,7 +674,7 @@ Public License instead of this License.  But first, please read
 <https://www.gnu.org/licenses/why-not-lgpl.html>.
 
 ---
-Some code is taken from the google/go-twitch project
+Some code is taken from the mrshankly/go-twitch project
 <https://github.com/mrshankly/go-twitch>, which is available under the following
 ISC license.
 
