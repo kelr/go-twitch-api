@@ -10,7 +10,7 @@ Run:
 $ go get github.com/kelr/go-twitch-api/twitchapi
 ```
 
-
+## Usage
 Example usage that gets the top active streamers:
 
 ```go
