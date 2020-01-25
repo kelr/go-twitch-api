@@ -37,8 +37,3 @@ func main() {
 }
 
 ```
-
-
-## License
-
-All files under this repository fall under the MIT License (see the file LICENSE).
