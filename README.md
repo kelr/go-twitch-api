@@ -17,8 +17,8 @@ Example usage that gets the top active streamers:
 package main
 
 import (
-	"github.com/kelr/go-twitch-api/twitchapi"
 	"fmt"
+	"github.com/kelr/go-twitch-api/twitchapi"
 )
 
 // Provide your Client ID here
@@ -35,6 +35,7 @@ func main() {
 
 	fmt.Printf("%v\n%s\n", response.Data[0], response.Pagination.Cursor)
 }
+
 ```
 
 

@@ -13,7 +13,7 @@ const (
 
 // Handles communication with the Twitch API.
 type TwitchClient struct {
-	conn     *http.Client
+	conn *http.Client
 	// Twitch Client ID
 	ClientID string
 }
@@ -26,7 +26,7 @@ func NewTwitchClient(clientID string) *TwitchClient {
 	}
 }
 
-// Create and send an HTTP request. 
+// Create and send an HTTP request.
 func (client *TwitchClient) sendRequest(path string, params interface{}, result interface{}) (*http.Response, error) {
 	targetUrl, err := url.Parse(helixRootURL + path)
 	if err != nil {
