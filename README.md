@@ -19,8 +19,9 @@ Example usage that gets the top active streamers:
 package main
 
 import (
+	"./twitchapi"
+	"encoding/json"
 	"fmt"
-	"github.com/kelr/go-twitch-api/twitchapi"
 )
 
 // Provide your Client ID here
@@ -30,12 +31,24 @@ func main() {
 
 	client := twitchapi.NewTwitchClient(clientID)
 
-	response, err := client.GetStreams(nil)
+	// Set options, English and only return the top 2 streams
+	opt := &twitchapi.GetStreamsOpt{
+		Language: "en",
+		First:    2,
+	}
+
+	// Returns a GetStreamsResponse object
+	response, err := client.GetStreams(opt)
 	if err != nil {
 		fmt.Println("Error:", err)
 	}
 
-	fmt.Printf("%v\n%s\n", response.Data[0], response.Pagination.Cursor)
+	fmt.Println(response.Data, response.Pagination.Cursor)
+
+	// Pretty print
+	obj, _ := json.MarshalIndent(response, "", "  ")
+	fmt.Println(string(obj))
 }
+
 
 ```

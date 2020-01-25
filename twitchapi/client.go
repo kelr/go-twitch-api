@@ -2,6 +2,7 @@ package twitchapi
 
 import (
 	"encoding/json"
+	"github.com/google/go-querystring/query"
 	"io"
 	"net/http"
 	"net/url"
@@ -33,6 +34,15 @@ func (client *TwitchClient) sendRequest(path string, params interface{}, result 
 		return nil, err
 	}
 
+	// Convert optional params to URL queries
+	if params != nil {
+		qs, err := query.Values(params)
+		if err != nil {
+			return nil, err
+		}
+		targetUrl.RawQuery = qs.Encode()
+	}
+
 	request, err := http.NewRequest("GET", targetUrl.String(), nil)
 	if err != nil {
 		return nil, err
@@ -50,12 +60,12 @@ func (client *TwitchClient) sendRequest(path string, params interface{}, result 
 	}
 	defer resp.Body.Close()
 
+	// Decode the response
 	err = json.NewDecoder(resp.Body).Decode(result)
 	if err == io.EOF {
 		err = nil
 	}
 
 	// TODO: Check response code
-
 	return resp, nil
 }

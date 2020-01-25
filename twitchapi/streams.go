@@ -7,13 +7,13 @@ const (
 
 // Defines the options available for Get Streams
 type GetStreamsOpt struct {
-	After     string `json:"after,omitempty"`
-	Before    string `json:"before,omitempty"`
-	First     int    `json:"first,omitempty"`
-	GameID    string `json:"game_id,omitempty"`
-	Language  string `json:"language,omitempty"`
-	UserID    string `json:"user_id,omitempty"`
-	UserLogin string `json:"user_login,omitempty"`
+	After     string `url:"after,omitempty"`
+	Before    string `url:"before,omitempty"`
+	First     int    `url:"first,omitempty"`
+	GameID    string `url:"game_id,omitempty"`
+	Language  string `url:"language,omitempty"`
+	UserID    string `url:"user_id,omitempty"`
+	UserLogin string `url:"user_login,omitempty"`
 }
 
 // Response structure for a Get Streams command
@@ -41,10 +41,8 @@ type GetStreamsResponse struct {
 //
 // https://dev.twitch.tv/docs/api/reference#get-streams
 func (client *TwitchClient) GetStreams(opt *GetStreamsOpt) (*GetStreamsResponse, error) {
-	if opt != nil {
-	}
 	data := new(GetStreamsResponse)
-	_, err := client.sendRequest(getStreamsPath, nil, data)
+	_, err := client.sendRequest(getStreamsPath, opt, data)
 	if err != nil {
 		return nil, err
 	}
