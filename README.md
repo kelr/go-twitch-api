@@ -19,7 +19,7 @@ Example usage that gets the top active streamers:
 package main
 
 import (
-	"./twitchapi"
+	"github.com/kelr/go-twitch-api/twitchapi"
 	"encoding/json"
 	"fmt"
 )
