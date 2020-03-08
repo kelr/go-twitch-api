@@ -2,7 +2,7 @@
 
 This library provides access to the Helix Twitch API.
 
-Note: This is a work in progress and may not provide full functionality.
+Note: This is a work in progress and a project to help me learn Go :). May not provide full functionality.
 
 ## Installation
 
