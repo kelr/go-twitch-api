@@ -25,11 +25,15 @@ import (
 )
 
 // Provide your Client ID here
-const clientID = ""
+// Better to set these as environment variables
+const (
+	clientID = ""
+	clientSecret = ""
+)
 
 func main() {
 
-	client := twitchapi.NewTwitchClient(clientID)
+	client := twitchapi.NewTwitchClient(clientID, clientSecret)
 
 	// Set options, English and only return the top 2 streams
 	opt := &twitchapi.GetStreamsOpt{

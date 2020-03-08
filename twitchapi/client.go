@@ -6,6 +6,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"golang.org/x/oauth2/clientcredentials"
+	"golang.org/x/oauth2/twitch"
+	"fmt"
+	"context"
 )
 
 const (
@@ -15,17 +19,32 @@ const (
 // Handles communication with the Twitch API.
 type TwitchClient struct {
 	conn *http.Client
-	// Twitch Client ID
 	ClientID string
+	ClientSecret string
 }
 
 // Returns a new Twitch Client. If clientID is "", it will not be appended on the request header.
-func NewTwitchClient(clientID string) *TwitchClient {
+// A client credentials config is established which auto-refreshes OAuth2 access tokens
+// Currently ONLY uses Client Credentials flow. Not intended for user access tokens.
+func NewTwitchClient(clientID string, clientSecret string) *TwitchClient {
+	config := &clientcredentials.Config{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		TokenURL:     twitch.Endpoint.TokenURL,
+	}
+
+	token, err := config.Token(context.Background())
+	if err != nil {
+		fmt.Println("Error in getting a token: ", err)
+	}
+
 	return &TwitchClient{
 		ClientID: clientID,
-		conn:     http.DefaultClient,
+		ClientSecret: clientSecret,
+		conn: config.Client(context.Background()),
 	}
 }
+
 
 // Create and send an HTTP request.
 func (client *TwitchClient) sendRequest(path string, params interface{}, result interface{}) (*http.Response, error) {
