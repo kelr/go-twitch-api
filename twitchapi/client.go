@@ -1,15 +1,15 @@
 package twitchapi
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/google/go-querystring/query"
+	"golang.org/x/oauth2/clientcredentials"
+	"golang.org/x/oauth2/twitch"
 	"io"
 	"net/http"
 	"net/url"
-	"golang.org/x/oauth2/clientcredentials"
-	"golang.org/x/oauth2/twitch"
-	"fmt"
-	"context"
 )
 
 const (
@@ -18,8 +18,8 @@ const (
 
 // Handles communication with the Twitch API.
 type TwitchClient struct {
-	conn *http.Client
-	ClientID string
+	conn         *http.Client
+	ClientID     string
 	ClientSecret string
 }
 
@@ -33,18 +33,17 @@ func NewTwitchClient(clientID string, clientSecret string) *TwitchClient {
 		TokenURL:     twitch.Endpoint.TokenURL,
 	}
 
-	token, err := config.Token(context.Background())
+	_, err := config.Token(context.Background())
 	if err != nil {
 		fmt.Println("Error in getting a token: ", err)
 	}
 
 	return &TwitchClient{
-		ClientID: clientID,
+		ClientID:     clientID,
 		ClientSecret: clientSecret,
-		conn: config.Client(context.Background()),
+		conn:         config.Client(context.Background()),
 	}
 }
-
 
 // Create and send an HTTP request.
 func (client *TwitchClient) sendRequest(path string, params interface{}, result interface{}) (*http.Response, error) {
