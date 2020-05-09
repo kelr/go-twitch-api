@@ -42,7 +42,7 @@ type GetStreamsResponse struct {
 // https://dev.twitch.tv/docs/api/reference#get-streams
 func (client *TwitchClient) GetStreams(opt *GetStreamsOpt) (*GetStreamsResponse, error) {
 	data := new(GetStreamsResponse)
-	_, err := client.sendRequest(getStreamsPath, opt, data)
+	_, err := client.sendRequest(getStreamsPath, opt, data, "GET")
 	if err != nil {
 		return nil, err
 	}

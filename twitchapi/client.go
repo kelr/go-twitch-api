@@ -79,7 +79,7 @@ func NewTwitchClientUserAuth(config *oauth2.Config, userToken *oauth2.Token) (*T
 }
 
 // Create and send an HTTP request.
-func (client *TwitchClient) sendRequest(path string, params interface{}, result interface{}) (*http.Response, error) {
+func (client *TwitchClient) sendRequest(path string, params interface{}, result interface{}, requestType string) (*http.Response, error) {
 	targetUrl, err := url.Parse(helixRootURL + path)
 	if err != nil {
 		return nil, err
@@ -94,7 +94,7 @@ func (client *TwitchClient) sendRequest(path string, params interface{}, result 
 		targetUrl.RawQuery = qs.Encode()
 	}
 
-	request, err := http.NewRequest("GET", targetUrl.String(), nil)
+	request, err := http.NewRequest(requestType, targetUrl.String(), nil)
 	if err != nil {
 		return nil, err
 	}

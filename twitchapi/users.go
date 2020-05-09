@@ -32,7 +32,7 @@ type GetUsersResponse struct {
 // https://dev.twitch.tv/docs/api/reference#get-users
 func (client *TwitchClient) GetUsers(opt *GetUsersOpt) (*GetUsersResponse, error) {
 	data := new(GetUsersResponse)
-	_, err := client.sendRequest(getUsersPath, opt, data)
+	_, err := client.sendRequest(getUsersPath, opt, data, "GET")
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,25 @@ type GetUsersFollowsResponse struct {
 // https://dev.twitch.tv/docs/api/reference#get-users-follows
 func (client *TwitchClient) GetUsersFollows(opt *GetUsersFollowsOpt) (*GetUsersFollowsResponse, error) {
 	data := new(GetUsersFollowsResponse)
-	_, err := client.sendRequest(getUsersFollowsPath, opt, data)
+	_, err := client.sendRequest(getUsersFollowsPath, opt, data, "GET")
+	if err != nil {
+		return nil, err
+	}
+	return data, err
+}
+
+// Defines the options available for Get Users Follows
+type UpdateUserOpt struct {
+	Description  string `url:"description"`
+}
+
+// Updates the description of a user. Requires a user token for the user to be updated. 
+// Requires scope: user:edit 
+//
+// https://dev.twitch.tv/docs/api/reference#update-user
+func (client *TwitchClient) UpdateUser(opt *UpdateUserOpt) (*GetUsersResponse, error) {
+	data := new(GetUsersResponse)
+	_, err := client.sendRequest(getUsersPath, opt, data, "PUT")
 	if err != nil {
 		return nil, err
 	}
