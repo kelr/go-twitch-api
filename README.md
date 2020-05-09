@@ -1,6 +1,8 @@
 # go-twitch-api
 
-This library provides access to the Helix Twitch API.
+This library provides access to the [Helix Twitch API](https://dev.twitch.tv/docs/api/reference).
+
+It handles both app access as well as user access tokens. All tokens used are automatically refreshed.
 
 Note: This is a work in progress and a project to help me learn Go :). May not provide full functionality.
 
@@ -24,16 +26,20 @@ import (
 	"fmt"
 )
 
-// Provide your Client ID here
-// Better to set these as environment variables
+// Provide your Client ID and secret here.
+// Better to set these as environment variables.
 const (
-	clientID = ""
+	clientID     = ""
 	clientSecret = ""
 )
 
 func main() {
 
-	client := twitchapi.NewTwitchClient(clientID, clientSecret)
+	client, err := twitchapi.NewTwitchClient(clientID, clientSecret)
+	if err != nil {
+		fmt.Println("Error: ", err)
+		return
+	}
 
 	// Set options, English and only return the top 2 streams
 	opt := &twitchapi.GetStreamsOpt{
@@ -45,14 +51,12 @@ func main() {
 	response, err := client.GetStreams(opt)
 	if err != nil {
 		fmt.Println("Error:", err)
+		return
 	}
-
-	fmt.Println(response.Data, response.Pagination.Cursor)
 
 	// Pretty print
 	obj, _ := json.MarshalIndent(response, "", "  ")
 	fmt.Println(string(obj))
 }
-
 
 ```
