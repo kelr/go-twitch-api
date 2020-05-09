@@ -49,7 +49,7 @@ func NewTwitchClient(clientID string, clientSecret string) (*TwitchClient, error
 	}, nil
 }
 
-func UserAuthSetup(clientID string, clientSecret string, redirectURI string, scopes *[]string) (*oauth2.Config, string) {
+func NewUserAuth(clientID string, clientSecret string, redirectURI string, scopes *[]string) (*oauth2.Config, string) {
 	config := &oauth2.Config{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
@@ -60,17 +60,20 @@ func UserAuthSetup(clientID string, clientSecret string, redirectURI string, sco
 	return config, config.AuthCodeURL("state", oauth2.AccessTypeOffline)
 }
 
-func NewTwitchClientUserAuth(config *oauth2.Config, authCode string) (*TwitchClient, error) {
+func TokenExchange(config *oauth2.Config, authCode string) (*oauth2.Token, error) { 
 	token, err := config.Exchange(context.Background(), authCode)
 	if err != nil {
 		fmt.Println("Error in obtaining user token:", err)
 		return nil, err
 	}
+	return token, nil
+}
 
+func NewTwitchClientUserAuth(config *oauth2.Config, userToken *oauth2.Token) (*TwitchClient, error) {
 	return &TwitchClient{
 		ClientID:     config.ClientID,
 		ClientSecret: config.ClientSecret,
-		conn:         config.Client(context.Background(), token),
+		conn:         config.Client(context.Background(), userToken),
 		tokenType:    "user",
 	}, nil
 }
