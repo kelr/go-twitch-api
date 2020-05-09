@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/google/go-querystring/query"
+	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 	"golang.org/x/oauth2/twitch"
 	"io"
@@ -21,12 +22,13 @@ type TwitchClient struct {
 	conn         *http.Client
 	ClientID     string
 	ClientSecret string
+	tokenType    string
 }
 
 // Returns a new Twitch Client. If clientID is "", it will not be appended on the request header.
 // A client credentials config is established which auto-refreshes OAuth2 access tokens
 // Currently ONLY uses Client Credentials flow. Not intended for user access tokens.
-func NewTwitchClient(clientID string, clientSecret string) *TwitchClient {
+func NewTwitchClient(clientID string, clientSecret string) (*TwitchClient, error) {
 	config := &clientcredentials.Config{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
@@ -35,14 +37,42 @@ func NewTwitchClient(clientID string, clientSecret string) *TwitchClient {
 
 	_, err := config.Token(context.Background())
 	if err != nil {
-		fmt.Println("Error in getting a token: ", err)
+		fmt.Println("Error in getting a token:", err)
+		return nil, err
 	}
 
 	return &TwitchClient{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		conn:         config.Client(context.Background()),
+		tokenType:    "client",
+	}, nil
+}
+
+func UserAuthSetup(clientID string, clientSecret string, redirectURI string, scopes *[]string) (*oauth2.Config, string) {
+	config := &oauth2.Config{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		Scopes:       *scopes,
+		Endpoint:     twitch.Endpoint,
+		RedirectURL:  redirectURI,
 	}
+	return config, config.AuthCodeURL("state", oauth2.AccessTypeOffline)
+}
+
+func NewTwitchClientUserAuth(config *oauth2.Config, authCode string) (*TwitchClient, error) {
+	token, err := config.Exchange(context.Background(), authCode)
+	if err != nil {
+		fmt.Println("Error in obtaining user token:", err)
+		return nil, err
+	}
+
+	return &TwitchClient{
+		ClientID:     config.ClientID,
+		ClientSecret: config.ClientSecret,
+		conn:         config.Client(context.Background(), token),
+		tokenType:    "user",
+	}, nil
 }
 
 // Create and send an HTTP request.

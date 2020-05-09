@@ -1,7 +1,8 @@
 package twitchapi
 
 const (
-	getUsersPath = "/users"
+	getUsersPath        = "/users"
+	getUsersFollowsPath = "/users/follows"
 )
 
 // Defines the options available for Get Users
@@ -32,6 +33,41 @@ type GetUsersResponse struct {
 func (client *TwitchClient) GetUsers(opt *GetUsersOpt) (*GetUsersResponse, error) {
 	data := new(GetUsersResponse)
 	_, err := client.sendRequest(getUsersPath, opt, data)
+	if err != nil {
+		return nil, err
+	}
+	return data, err
+}
+
+// Defines the options available for Get Users Follows
+type GetUsersFollowsOpt struct {
+	After  string `url:"after,omitempty"`
+	First  int    `url:"first,omitempty"`
+	FromID string `url:"from_id,omitempty"`
+	ToID   string `url:"to_id,omitempty"`
+}
+
+// Response structure for a Get Users Follows command
+type GetUsersFollowsResponse struct {
+	Total int `json:"total,omitempty"`
+	Data  []struct {
+		FollowedAt string `json:"followed_at,omitempty"`
+		FromID     string `json:"from_id,omitempty"`
+		FromName   string `json:"from_name,omitempty"`
+		ToID       string `json:"to_id,omitempty"`
+		ToName     string `json:"to_name,omitempty"`
+	} `json:"data,omitempty"`
+	Pagination struct {
+		Cursor string `json:"cursor,omitempty"`
+	} `json:"pagination,omitempty"`
+}
+
+// Return a slice representing the followers from ids or followers to ids
+//
+// https://dev.twitch.tv/docs/api/reference#get-users-follows
+func (client *TwitchClient) GetUsersFollows(opt *GetUsersFollowsOpt) (*GetUsersFollowsResponse, error) {
+	data := new(GetUsersFollowsResponse)
+	_, err := client.sendRequest(getUsersFollowsPath, opt, data)
 	if err != nil {
 		return nil, err
 	}
