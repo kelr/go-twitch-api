@@ -11,7 +11,7 @@ Note: This is a work in progress and a project to help me learn Go :). May not p
 Run:
 
 ```bash
-$ go get github.com/kelr/go-twitch-api/twitchapi
+$ go get github.com/kelr/go-twitch-api/helix
 ```
 
 ## Usage
@@ -21,7 +21,7 @@ Example usage that gets the top active streamers:
 package main
 
 import (
-	"github.com/kelr/go-twitch-api/twitchapi"
+	"github.com/kelr/go-twitch-api/helix"
 	"encoding/json"
 	"fmt"
 )
@@ -35,14 +35,14 @@ const (
 
 func main() {
 
-	client, err := twitchapi.NewTwitchClient(clientID, clientSecret)
+	client, err := helix.NewTwitchClient(clientID, clientSecret)
 	if err != nil {
 		fmt.Println("Error: ", err)
 		return
 	}
 
 	// Set options, English and only return the top 2 streams
-	opt := &twitchapi.GetStreamsOpt{
+	opt := &helix.GetStreamsOpt{
 		Language: "en",
 		First:    2,
 	}

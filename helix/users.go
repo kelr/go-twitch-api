@@ -1,4 +1,4 @@
-package twitchapi
+package helix //import "github.com/kelr/go-twitch-api/helix"
 
 const (
 	getUsersPath        = "/users"
