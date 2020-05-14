@@ -1,4 +1,4 @@
-package helix //import "github.com/kelr/go-twitch-api/helix"
+package helix 
 
 const (
 	getStreamsPath         = "/streams"

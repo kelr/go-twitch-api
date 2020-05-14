@@ -1,4 +1,4 @@
-package helix //import "github.com/kelr/go-twitch-api/helix"
+package helix 
 
 import (
 	"context"
@@ -49,26 +49,8 @@ func NewTwitchClient(clientID string, clientSecret string) (*TwitchClient, error
 	}, nil
 }
 
-func NewUserAuth(clientID string, clientSecret string, redirectURI string, scopes *[]string) (*oauth2.Config, string) {
-	config := &oauth2.Config{
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-		Scopes:       *scopes,
-		Endpoint:     twitch.Endpoint,
-		RedirectURL:  redirectURI,
-	}
-	return config, config.AuthCodeURL("state", oauth2.AccessTypeOffline)
-}
-
-func TokenExchange(config *oauth2.Config, authCode string) (*oauth2.Token, error) { 
-	token, err := config.Exchange(context.Background(), authCode)
-	if err != nil {
-		fmt.Println("Error in obtaining user token:", err)
-		return nil, err
-	}
-	return token, nil
-}
-
+// Creates a new helix API twitch client with a user token. This token may be obtained with NewUserAuth and TokenExchange, or an existing user token
+// may be used instead. The OAuth2 config used to create the token must match. The user token will be automatically refreshed.
 func NewTwitchClientUserAuth(config *oauth2.Config, userToken *oauth2.Token) (*TwitchClient, error) {
 	return &TwitchClient{
 		ClientID:     config.ClientID,

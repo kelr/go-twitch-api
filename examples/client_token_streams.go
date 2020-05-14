@@ -3,7 +3,7 @@
 package main
 
 import (
-	"../twitchapi"
+	"../helix"
 	"encoding/json"
 	"fmt"
 )
@@ -17,14 +17,14 @@ const (
 
 func main() {
 
-	client, err := twitchapi.NewTwitchClient(clientID, clientSecret)
+	client, err := helix.NewTwitchClient(clientID, clientSecret)
 	if err != nil {
 		fmt.Println("Error: ", err)
 		return
 	}
 
 	// Set options, English and only return the top 2 streams
-	opt := &twitchapi.GetStreamsOpt{
+	opt := &helix.GetStreamsOpt{
 		Language: "en",
 		First:    2,
 	}

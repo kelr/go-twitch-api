@@ -1,8 +1,14 @@
-package helix //import "github.com/kelr/go-twitch-api/helix"
+package helix 
+
+import (
+	"time"	
+)
 
 const (
-	getUsersPath        = "/users"
-	getUsersFollowsPath = "/users/follows"
+	getUsersPath           = "/users"
+	getUsersFollowsPath    = "/users/follows"
+	getUsersExtensionsPath = "/users/extensions/list"
+	getUsersActiveExtensionsPath = "/users/extensions"
 )
 
 // Defines the options available for Get Users
@@ -51,7 +57,7 @@ type GetUsersFollowsOpt struct {
 type GetUsersFollowsResponse struct {
 	Total int `json:"total,omitempty"`
 	Data  []struct {
-		FollowedAt string `json:"followed_at,omitempty"`
+		FollowedAt time.Time `json:"followed_at,omitempty"`
 		FromID     string `json:"from_id,omitempty"`
 		FromName   string `json:"from_name,omitempty"`
 		ToID       string `json:"to_id,omitempty"`
@@ -74,18 +80,77 @@ func (client *TwitchClient) GetUsersFollows(opt *GetUsersFollowsOpt) (*GetUsersF
 	return data, err
 }
 
-// Defines the options available for Get Users Follows
+// Defines the options available for Update User
 type UpdateUserOpt struct {
-	Description  string `url:"description"`
+	Description string `url:"description"`
 }
 
-// Updates the description of a user. Requires a user token for the user to be updated. 
-// Requires scope: user:edit 
+// Updates the description of a user. Requires a user token for the user to be updated.
+// Requires scope: user:edit
 //
 // https://dev.twitch.tv/docs/api/reference#update-user
 func (client *TwitchClient) UpdateUser(opt *UpdateUserOpt) (*GetUsersResponse, error) {
 	data := new(GetUsersResponse)
 	_, err := client.sendRequest(getUsersPath, opt, data, "PUT")
+	if err != nil {
+		return nil, err
+	}
+	return data, err
+}
+
+// Response structure for a Get Users Extensions command
+type GetUserExtensionsResponse struct {
+	Data []struct {
+		ID          string   `json:"id,omitempty"`
+		Version     string   `json:"version,omitempty"`
+		Name        string   `json:"name,omitempty"`
+		CanActivate bool   `json:"can_activate,omitempty"`
+		Type        []string `json:"type,omitempty"`
+	} `json:"data,omitempty"`
+}
+
+// Returns a list of active and inactive extensions for a user identified by the user token
+// Requires scope user:read:broadcast
+//
+// https://dev.twitch.tv/docs/api/reference#get-users-follows
+func (client *TwitchClient) GetUserExtensions() (*GetUserExtensionsResponse, error) {
+	data := new(GetUserExtensionsResponse)
+	_, err := client.sendRequest(getUsersExtensionsPath, nil, data, "GET")
+	if err != nil {
+		return nil, err
+	}
+	return data, err
+}
+
+type GetUserActiveExtensionsOpt struct {
+	UserID string `url:"user_id"`
+}
+
+type ActiveExtension struct {
+	Active  bool   `json:"active"`
+	ID      string `json:"id,omitempty"`
+	Name    string `json:"name,omitempty"`
+	Version string `json:"version,omitempty"`
+	X       int    `json:"x,omitempty"`
+	Y       int    `json:"y,omitempty"`
+}
+
+// Response structure for a Get Users Extensions command
+type GetUserActiveExtensionsResponse struct {
+	Data struct {
+		Component    map[string]ActiveExtension `json:"component,omitempty"`
+		Overlay      map[string]ActiveExtension `json:"overlay,omitempty"`
+		Panel        map[string]ActiveExtension `json:"panel,omitempty"`
+	} `json:"data,omitempty"`
+}
+
+// Returns a list of active and inactive extensions for a user identified by the user token
+// Requires scope user:read:broadcast or user:edit:broadcast
+//
+// https://dev.twitch.tv/docs/api/reference#get-user-active-extensions
+func (client *TwitchClient) GetUserActiveExtensions(opt *GetUserActiveExtensionsOpt) (*GetUserActiveExtensionsResponse, error) {
+	data := new(GetUserActiveExtensionsResponse)
+	_, err := client.sendRequest(getUsersActiveExtensionsPath, opt, data, "GET")
 	if err != nil {
 		return nil, err
 	}

@@ -6,37 +6,32 @@ import (
 	"../helix"
 	"encoding/json"
 	"fmt"
+	"golang.org/x/oauth2"
+	"time"
 )
 
 // Provide your Client ID and secret. Set your redirect URI to one that you own.
 // Better to set these as environment variables.
 const (
-	clientID       = ""
-	clientSecret   = ""
-	redirectURI    = ""
-	targetUsername = ""
+	clientID     = ""
+	clientSecret = ""
+	redirectURI  = ""
 )
 
 // Set scopes to request from the user
-var scopes = []string{"user:read:email"}
+var scopes = []string{"user:read:broadcast"}
 
 func main() {
 	// Setup OAuth2 configs and get the URL to send to the user to ask for perms
 	config, url := helix.NewUserAuth(clientID, clientSecret, redirectURI, &scopes)
 	fmt.Println(url)
 
-	// Enter the code received by the redirect URI
-	var code string
-	if _, err := fmt.Scan(&code); err != nil {
-		fmt.Println(err)
-	}
-
-	// Obtain the user token through the code. This token can be reused as long as
-	// it has not expired, but the code cannot be.
-	token, err := helix.TokenExchange(config, code)
-	if err != nil {
-		return
-	}
+	// Import an existing token to use
+	token := new(oauth2.Token)
+	token.AccessToken = ""
+	token.Expiry = time.Date(2020, 5, 14, 6, 45, 0, 0, time.UTC)
+	token.RefreshToken = ""
+	token.TokenType = "bearer"
 
 	// User token will be automatically refreshed as long as the client is online.
 	client, err := helix.NewTwitchClientUserAuth(config, token)
@@ -44,18 +39,14 @@ func main() {
 		return
 	}
 
-	// Get user information, will include email for the user you have a token from
-	opt := &helix.GetUsersOpt{
-		Login: targetUsername,
-	}
-
-	response, err := client.GetUsers(opt)
+	// Get a list of all active extensions for the user matching the token
+	resp, err := client.GetUserActiveExtensions(nil)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
 
 	// Pretty print
-	obj, _ := json.MarshalIndent(response, "", "  ")
+	obj, _ := json.MarshalIndent(resp, "", "  ")
 	fmt.Println(string(obj))
 }
