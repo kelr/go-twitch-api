@@ -40,12 +40,14 @@ func main() {
 	// it has not expired, but the auth code cannot be reused.
 	token, err := helix.TokenExchange(config, authCode)
 	if err != nil {
+        fmt.Println(err)
 		return
 	}
 
 	// Create the API client. User token will be automatically refreshed.
 	client, err := helix.NewTwitchClientUserAuth(config, token)
 	if err != nil {
+        fmt.Println(err)
 		return
 	}
 
