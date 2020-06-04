@@ -1,13 +1,13 @@
-package helix 
+package helix
 
 import (
-	"time"	
+	"time"
 )
 
 const (
-	getUsersPath           = "/users"
-	getUsersFollowsPath    = "/users/follows"
-	getUsersExtensionsPath = "/users/extensions/list"
+	getUsersPath                 = "/users"
+	getUsersFollowsPath          = "/users/follows"
+	getUsersExtensionsPath       = "/users/extensions/list"
 	getUsersActiveExtensionsPath = "/users/extensions"
 )
 
@@ -58,10 +58,10 @@ type GetUsersFollowsResponse struct {
 	Total int `json:"total,omitempty"`
 	Data  []struct {
 		FollowedAt time.Time `json:"followed_at,omitempty"`
-		FromID     string `json:"from_id,omitempty"`
-		FromName   string `json:"from_name,omitempty"`
-		ToID       string `json:"to_id,omitempty"`
-		ToName     string `json:"to_name,omitempty"`
+		FromID     string    `json:"from_id,omitempty"`
+		FromName   string    `json:"from_name,omitempty"`
+		ToID       string    `json:"to_id,omitempty"`
+		ToName     string    `json:"to_name,omitempty"`
 	} `json:"data,omitempty"`
 	Pagination struct {
 		Cursor string `json:"cursor,omitempty"`
@@ -104,7 +104,7 @@ type GetUserExtensionsResponse struct {
 		ID          string   `json:"id,omitempty"`
 		Version     string   `json:"version,omitempty"`
 		Name        string   `json:"name,omitempty"`
-		CanActivate bool   `json:"can_activate,omitempty"`
+		CanActivate bool     `json:"can_activate,omitempty"`
 		Type        []string `json:"type,omitempty"`
 	} `json:"data,omitempty"`
 }
@@ -138,9 +138,9 @@ type ActiveExtension struct {
 // Response structure for a Get Users Extensions command
 type GetUserActiveExtensionsResponse struct {
 	Data struct {
-		Component    map[string]ActiveExtension `json:"component,omitempty"`
-		Overlay      map[string]ActiveExtension `json:"overlay,omitempty"`
-		Panel        map[string]ActiveExtension `json:"panel,omitempty"`
+		Component map[string]ActiveExtension `json:"component,omitempty"`
+		Overlay   map[string]ActiveExtension `json:"overlay,omitempty"`
+		Panel     map[string]ActiveExtension `json:"panel,omitempty"`
 	} `json:"data,omitempty"`
 }
 

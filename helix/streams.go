@@ -1,4 +1,4 @@
-package helix 
+package helix
 
 const (
 	getStreamsPath         = "/streams"

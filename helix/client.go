@@ -1,9 +1,8 @@
-package helix 
+package helix
 
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/google/go-querystring/query"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
@@ -37,7 +36,6 @@ func NewTwitchClient(clientID string, clientSecret string) (*TwitchClient, error
 
 	_, err := config.Token(context.Background())
 	if err != nil {
-		fmt.Println("Error in getting a token:", err)
 		return nil, err
 	}
 
