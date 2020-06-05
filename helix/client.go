@@ -16,9 +16,14 @@ const (
 	helixRootURL = "https://api.twitch.tv/helix"
 )
 
+// HTTPClient interface for mocking purposes
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 // Handles communication with the Twitch API.
 type TwitchClient struct {
-	conn         *http.Client
+	conn         HTTPClient
 	ClientID     string
 	ClientSecret string
 	tokenType    string
