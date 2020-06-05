@@ -9,11 +9,11 @@ import (
 )
 
 // Provide your Client ID and secret. Set your redirect URI to one that you own.
-// Better to set these as environment variables.
+// The URI must match exactly with the one registered by your app on the Twitch Developers site
 const (
     clientID     = ""
 	clientSecret = ""
-	redirectURI    = ""
+	redirectURI    = "http://localhost"
 	targetUsername = ""
 )
 
