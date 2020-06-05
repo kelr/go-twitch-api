@@ -11,7 +11,7 @@ const (
 )
 
 func main() {
-	client, err := twitchapi.NewHelixClient(clientID, clientSecret)
+	client, err := helix.NewHelixClient(clientID, clientSecret)
 	if err != nil {
 		fmt.Println(err)
 		return

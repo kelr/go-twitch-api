@@ -1,6 +1,6 @@
 # go-twitch-api
 
-This library provides access to the [Helix Twitch API](https://dev.twitch.tv/docs/api/reference).
+This library provides an easy to use interface to the [Helix Twitch API](https://dev.twitch.tv/docs/api/reference).
 
 It handles both app access as well as user access tokens. All tokens used are automatically refreshed.
 
@@ -11,11 +11,45 @@ Note: This is a work in progress and a project to help me learn Go :). May not p
 Run:
 
 ```bash
-$ go get github.com/kelr/go-twitch-api/helix
+$ go get github.com/kelr/go-twitch-api/
 ```
 
 ## Usage
-Example usage that gets the top active streamers:
+Example to convert a Twitch login name to account ID
+
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/kelr/go-twitch-api"
+)
+
+// Provide your Client ID and secret here.
+const (
+	clientID     = ""
+	clientSecret = ""
+)
+
+func main() {
+	client, err := helix.NewHelixClient(clientID, clientSecret)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	userId, err := client.UserToId("kyrotobi")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println(userId)
+}
+```
+
+If more granular access is needed, import the helix package directly.
+This example gets the top 2 live streamers.
 
 ```go
 package main
@@ -27,7 +61,6 @@ import (
 )
 
 // Provide your Client ID and secret here.
-// Better to set these as environment variables.
 const (
 	clientID     = ""
 	clientSecret = ""
@@ -58,5 +91,4 @@ func main() {
 	obj, _ := json.MarshalIndent(response, "", "  ")
 	fmt.Println(string(obj))
 }
-
 ```

@@ -3,6 +3,7 @@ package helix
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"github.com/google/go-querystring/query"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
@@ -33,6 +34,12 @@ type TwitchClient struct {
 // A client credentials config is established which auto-refreshes OAuth2 access tokens
 // Currently ONLY uses Client Credentials flow. Not intended for user access tokens.
 func NewTwitchClient(clientID string, clientSecret string) (*TwitchClient, error) {
+	if clientID == "" {
+		return nil, errors.New("A Client ID must be provided to create a twitch client")
+	}
+	if clientSecret == "" {
+		return nil, errors.New("A Client secret must be provided to create a twitch client")
+	}
 	config := &clientcredentials.Config{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
@@ -63,8 +70,8 @@ func NewTwitchClientUserAuth(config *oauth2.Config, userToken *oauth2.Token) (*T
 	}, nil
 }
 
-// Create and send an HTTP request.
-func (client *TwitchClient) sendRequest(path string, params interface{}, result interface{}, requestType string) (*http.Response, error) {
+// Creates a URL with path and the values in params appended onto it
+func buildURL(path string, params interface{}) (*url.URL, error) {
 	targetUrl, err := url.Parse(helixRootURL + path)
 	if err != nil {
 		return nil, err
@@ -78,16 +85,23 @@ func (client *TwitchClient) sendRequest(path string, params interface{}, result 
 		}
 		targetUrl.RawQuery = qs.Encode()
 	}
+	return targetUrl, nil
+}
+
+// Create and send an HTTP request. Return the decoded JSON value of the HTTP body regardless of status code.
+func (client *TwitchClient) sendRequest(path string, params interface{}, result interface{}, requestType string) (*http.Response, error) {
+	targetUrl, err := buildURL(path, params)
+	if err != nil {
+		return nil, err
+	}
 
 	request, err := http.NewRequest(requestType, targetUrl.String(), nil)
 	if err != nil {
 		return nil, err
 	}
 
-	// Add on optional headers
-	if client.ClientID != "" {
-		request.Header.Set("Client-ID", client.ClientID)
-	}
+	// A client ID is required. The auth token will be added automatically.
+	request.Header.Set("Client-ID", client.ClientID)
 
 	// Send the request
 	resp, err := client.conn.Do(request)

@@ -1,5 +1,5 @@
 // Provides easier to use wrapper functions for the Helix API client
-package twitchapi
+package helix
 
 import (
 	"errors"

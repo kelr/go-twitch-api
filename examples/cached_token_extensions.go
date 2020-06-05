@@ -23,7 +23,10 @@ var scopes = []string{"user:read:broadcast"}
 
 func main() {
 	// Setup OAuth2 config
-	config := helix.NewUserAuth(clientID, clientSecret, redirectURI, &scopes)
+	config, err := helix.NewUserAuth(clientID, clientSecret, redirectURI, &scopes)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	// Import an existing token to use
 	token := new(oauth2.Token)
@@ -35,7 +38,7 @@ func main() {
 	// Create API client. User token will be automatically refreshed.
 	client, err := helix.NewTwitchClientUserAuth(config, token)
 	if err != nil {
-        fmt.Println(err)
+		fmt.Println(err)
 		return
 	}
 

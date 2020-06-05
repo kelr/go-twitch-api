@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/twitch"
@@ -14,7 +15,16 @@ const (
 )
 
 // Creates and returns OAuth2 configuration object with the twitch endpoint. Also returns a URL to be sent to the user used to initiate authentication.
-func NewUserAuth(clientID string, clientSecret string, redirectURI string, scopes *[]string) *oauth2.Config {
+func NewUserAuth(clientID string, clientSecret string, redirectURI string, scopes *[]string) (*oauth2.Config, error) {
+	if clientID == "" {
+		return nil, errors.New("A Client ID must be provided to create an OAuth2 config")
+	}
+	if clientSecret == "" {
+		return nil, errors.New("A Client secret must be provided to create a OAuth2 config")
+	}
+	if redirectURI == "" {
+		return nil, errors.New("A redirect URI must be provided to create a OAuth2 config")
+	}
 	config := &oauth2.Config{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
@@ -22,7 +32,7 @@ func NewUserAuth(clientID string, clientSecret string, redirectURI string, scope
 		Endpoint:     twitch.Endpoint,
 		RedirectURL:  redirectURI,
 	}
-	return config
+	return config, nil
 }
 
 // Returns a URL to send to the end user for them to access as well as the state string embedded into the URL. Ensure that this state string matches the value recieved at the redirect URI.
