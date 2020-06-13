@@ -1,15 +1,19 @@
-package helix 
+package helix
 
 import (
-	"time"	
+	"time"
 )
 
 const (
-	getUsersPath           = "/users"
-	getUsersFollowsPath    = "/users/follows"
-	getUsersExtensionsPath = "/users/extensions/list"
+	getUsersPath                 = "/users"
+	getUsersFollowsPath          = "/users/follows"
+	getUsersExtensionsPath       = "/users/extensions/list"
 	getUsersActiveExtensionsPath = "/users/extensions"
 )
+
+type PaginationData struct {
+	Cursor string `json:"cursor,omitempty"`
+}
 
 // Defines the options available for Get Users
 type GetUsersOpt struct {
@@ -17,20 +21,22 @@ type GetUsersOpt struct {
 	Login string `url:"login,omitempty"`
 }
 
+type GetUsersData struct {
+	ID              string `json:"id,omitempty"`
+	Login           string `json:"login,omitempty"`
+	DisplayName     string `json:"display_name,omitempty"`
+	Type            string `json:"type,omitempty"`
+	BroadcasterType string `json:"broadcaster_type,omitempty"`
+	Description     string `json:"description,omitempty"`
+	ProfileImageUrl string `json:"profile_image_url,omitempty"`
+	OfflineImageUrl string `json:"offline_image_url,omitempty"`
+	ViewCount       string `json:"view_count,omitempty"`
+	Email           string `json:"email,omitempty"`
+}
+
 // Response structure for a Get Users command
 type GetUsersResponse struct {
-	Data []struct {
-		ID              string `json:"id,omitempty"`
-		Login           string `json:"login,omitempty"`
-		DisplayName     string `json:"display_name,omitempty"`
-		Type            string `json:"type,omitempty"`
-		BroadcasterType string `json:"broadcaster_type,omitempty"`
-		Description     string `json:"description,omitempty"`
-		ProfileImageUrl string `json:"profile_image_url,omitempty"`
-		OfflineImageUrl string `json:"offline_image_url,omitempty"`
-		ViewCount       string `json:"view_count,omitempty"`
-		Email           string `json:"email,omitempty"`
-	} `json:"data,omitempty"`
+	Data []GetUsersData `json:"data,omitempty"`
 }
 
 // Return a slice representing the information for the requested user(s)
@@ -53,19 +59,19 @@ type GetUsersFollowsOpt struct {
 	ToID   string `url:"to_id,omitempty"`
 }
 
+type GetUsersFollowsData struct {
+	FollowedAt time.Time `json:"followed_at,omitempty"`
+	FromID     string    `json:"from_id,omitempty"`
+	FromName   string    `json:"from_name,omitempty"`
+	ToID       string    `json:"to_id,omitempty"`
+	ToName     string    `json:"to_name,omitempty"`
+}
+
 // Response structure for a Get Users Follows command
 type GetUsersFollowsResponse struct {
-	Total int `json:"total,omitempty"`
-	Data  []struct {
-		FollowedAt time.Time `json:"followed_at,omitempty"`
-		FromID     string `json:"from_id,omitempty"`
-		FromName   string `json:"from_name,omitempty"`
-		ToID       string `json:"to_id,omitempty"`
-		ToName     string `json:"to_name,omitempty"`
-	} `json:"data,omitempty"`
-	Pagination struct {
-		Cursor string `json:"cursor,omitempty"`
-	} `json:"pagination,omitempty"`
+	Total      int                   `json:"total,omitempty"`
+	Data       []GetUsersFollowsData `json:"data,omitempty"`
+	Pagination PaginationData        `json:"pagination,omitempty"`
 }
 
 // Return a slice representing the followers from ids or followers to ids
@@ -98,15 +104,17 @@ func (client *TwitchClient) UpdateUser(opt *UpdateUserOpt) (*GetUsersResponse, e
 	return data, err
 }
 
+type GetUsersExtensionsData struct {
+	ID          string   `json:"id,omitempty"`
+	Version     string   `json:"version,omitempty"`
+	Name        string   `json:"name,omitempty"`
+	CanActivate bool     `json:"can_activate,omitempty"`
+	Type        []string `json:"type,omitempty"`
+}
+
 // Response structure for a Get Users Extensions command
 type GetUserExtensionsResponse struct {
-	Data []struct {
-		ID          string   `json:"id,omitempty"`
-		Version     string   `json:"version,omitempty"`
-		Name        string   `json:"name,omitempty"`
-		CanActivate bool   `json:"can_activate,omitempty"`
-		Type        []string `json:"type,omitempty"`
-	} `json:"data,omitempty"`
+	Data []GetUsersExtensionsData `json:"data,omitempty"`
 }
 
 // Returns a list of active and inactive extensions for a user identified by the user token
@@ -135,13 +143,15 @@ type ActiveExtension struct {
 	Y       int    `json:"y,omitempty"`
 }
 
+type GetUserActiveExtensionsData struct {
+	Component map[string]ActiveExtension `json:"component,omitempty"`
+	Overlay   map[string]ActiveExtension `json:"overlay,omitempty"`
+	Panel     map[string]ActiveExtension `json:"panel,omitempty"`
+}
+
 // Response structure for a Get Users Extensions command
 type GetUserActiveExtensionsResponse struct {
-	Data struct {
-		Component    map[string]ActiveExtension `json:"component,omitempty"`
-		Overlay      map[string]ActiveExtension `json:"overlay,omitempty"`
-		Panel        map[string]ActiveExtension `json:"panel,omitempty"`
-	} `json:"data,omitempty"`
+	Data GetUserActiveExtensionsData `json:"data,omitempty"`
 }
 
 // Returns a list of active and inactive extensions for a user identified by the user token

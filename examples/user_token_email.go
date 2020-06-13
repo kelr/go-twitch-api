@@ -1,19 +1,19 @@
 // An example to obtain a user authentication token for user's email.
-// Uses the token to get info about the user.
+// Uses OAuth2 Authorization Code Flow
 package main
 
 import (
-	"../helix"
 	"encoding/json"
 	"fmt"
+	"github.com/kelr/go-twitch-api/helix"
 )
 
 // Provide your Client ID and secret. Set your redirect URI to one that you own.
-// Better to set these as environment variables.
+// The URI must match exactly with the one registered by your app on the Twitch Developers site
 const (
 	clientID       = ""
 	clientSecret   = ""
-	redirectURI    = ""
+	redirectURI    = "http://localhost"
 	targetUsername = ""
 )
 
@@ -21,26 +21,37 @@ const (
 var scopes = []string{"user:read:email"}
 
 func main() {
-	// Setup OAuth2 configs and get the URL to send to the user to ask for perms
-	config, url := helix.NewUserAuth(clientID, clientSecret, redirectURI, &scopes)
-	fmt.Println(url)
+	// Setup OAuth2 configuration
+	config, err := helix.NewUserAuth(clientID, clientSecret, redirectURI, &scopes)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
-	// Enter the code received by the redirect URI
-	var code string
-	if _, err := fmt.Scan(&code); err != nil {
+	// Get the URL to send to the user and the state code to protect against CSRF attacks.
+	url, state := helix.GetAuthCodeURL(config)
+	fmt.Println(url)
+	fmt.Println("Ensure that state recieved at URI is:", state)
+
+	// Enter the code received by the redirect URI. Ensure that the state value
+	// obtained at the redirect URI matches the previous state value.
+	var authCode string
+	if _, err := fmt.Scan(&authCode); err != nil {
 		fmt.Println(err)
 	}
 
 	// Obtain the user token through the code. This token can be reused as long as
-	// it has not expired, but the code cannot be.
-	token, err := helix.TokenExchange(config, code)
+	// it has not expired, but the auth code cannot be reused.
+	token, err := helix.TokenExchange(config, authCode)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 
-	// User token will be automatically refreshed as long as the client is online.
+	// Create the API client. User token will be automatically refreshed.
 	client, err := helix.NewTwitchClientUserAuth(config, token)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 

@@ -3,9 +3,9 @@
 package main
 
 import (
-	"../helix"
 	"encoding/json"
 	"fmt"
+	"github.com/kelr/go-twitch-api/helix"
 	"golang.org/x/oauth2"
 	"time"
 )
@@ -22,9 +22,11 @@ const (
 var scopes = []string{"user:read:broadcast"}
 
 func main() {
-	// Setup OAuth2 configs and get the URL to send to the user to ask for perms
-	config, url := helix.NewUserAuth(clientID, clientSecret, redirectURI, &scopes)
-	fmt.Println(url)
+	// Setup OAuth2 config
+	config, err := helix.NewUserAuth(clientID, clientSecret, redirectURI, &scopes)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	// Import an existing token to use
 	token := new(oauth2.Token)
@@ -33,9 +35,10 @@ func main() {
 	token.RefreshToken = ""
 	token.TokenType = "bearer"
 
-	// User token will be automatically refreshed as long as the client is online.
+	// Create API client. User token will be automatically refreshed.
 	client, err := helix.NewTwitchClientUserAuth(config, token)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 

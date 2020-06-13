@@ -1,14 +1,30 @@
-package helix 
+package helix
 
 import (
-	"fmt"
 	"context"
+	"crypto/rand"
+	"encoding/hex"
+	"errors"
+	"fmt"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/twitch"
 )
 
+const (
+	stateLen = 32
+)
+
 // Creates and returns OAuth2 configuration object with the twitch endpoint. Also returns a URL to be sent to the user used to initiate authentication.
-func NewUserAuth(clientID string, clientSecret string, redirectURI string, scopes *[]string) (*oauth2.Config, string) {
+func NewUserAuth(clientID string, clientSecret string, redirectURI string, scopes *[]string) (*oauth2.Config, error) {
+	if clientID == "" {
+		return nil, errors.New("A Client ID must be provided to create an OAuth2 config")
+	}
+	if clientSecret == "" {
+		return nil, errors.New("A Client secret must be provided to create a OAuth2 config")
+	}
+	if redirectURI == "" {
+		return nil, errors.New("A redirect URI must be provided to create a OAuth2 config")
+	}
 	config := &oauth2.Config{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
@@ -16,7 +32,13 @@ func NewUserAuth(clientID string, clientSecret string, redirectURI string, scope
 		Endpoint:     twitch.Endpoint,
 		RedirectURL:  redirectURI,
 	}
-	return config, config.AuthCodeURL("state", oauth2.AccessTypeOffline)
+	return config, nil
+}
+
+// Returns a URL to send to the end user for them to access as well as the state string embedded into the URL. Ensure that this state string matches the value recieved at the redirect URI.
+func GetAuthCodeURL(config *oauth2.Config) (string, string) {
+	state, _ := generateState()
+	return config.AuthCodeURL(state, oauth2.AccessTypeOffline), state
 }
 
 // Conducts the exchange to turn an auth code into a user token. The OAuth2 config used to create the auth code must be the same.
@@ -27,4 +49,14 @@ func TokenExchange(config *oauth2.Config, authCode string) (*oauth2.Token, error
 		return nil, err
 	}
 	return token, nil
+}
+
+// Generate random 32 character state string
+func generateState() (string, error) {
+	var buf [stateLen]byte
+	if _, err := rand.Read(buf[:]); err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(buf[:]), nil
 }

@@ -3,9 +3,9 @@
 package main
 
 import (
-	"../helix"
 	"encoding/json"
 	"fmt"
+	"github.com/kelr/go-twitch-api/helix"
 )
 
 // Provide your Client ID and secret here.
