@@ -50,6 +50,7 @@ type pubSubListenRequest struct {
 	} `json:"data"`
 }
 
+// PubSubClient represents a connection and its state to the Twitch pubsub endpoint.
 type PubSubClient struct {
 	conn          *websocket.Conn
 	refreshClient *http.Client
@@ -63,6 +64,7 @@ type PubSubClient struct {
 	channelPointHandlers map[string]func(*ChannelPointsEvent)
 }
 
+// Returns a new PubSubClient. 
 func NewPubSubClient(config *oauth2.Config, userToken *oauth2.Token) *PubSubClient {
 	return &PubSubClient{
 		conn:          nil,
@@ -78,6 +80,7 @@ func NewPubSubClient(config *oauth2.Config, userToken *oauth2.Token) *PubSubClie
 	}
 }
 
+// Thread-safe check of whether or not the PubSubClient is connected.
 func (c *PubSubClient) IsConnected() bool {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -85,6 +88,9 @@ func (c *PubSubClient) IsConnected() bool {
 	return result
 }
 
+// Connect to the Twitch PubSub endpoint and listen on all registered topics. 
+// Will automatically reconnect on failure.
+// with exponential backoff. Returns an error if the client is already connected.
 func (c *PubSubClient) Connect() error {
 	if !c.IsConnected() {
 		conn, _, err := websocket.DefaultDialer.Dial(pubSubURL, nil)
@@ -96,11 +102,11 @@ func (c *PubSubClient) Connect() error {
 		go c.reader()
 		go c.writer()
 
+		// Listen on all registered topics
 		var topics []string
 		for id := range c.channelPointHandlers {
 			topics = append(topics, channelPointTopic + id)
 		}
-
 		if len(topics) > 0 {
 			c.listen(&topics)
 		}
@@ -115,7 +121,9 @@ func (c *PubSubClient) Connect() error {
 	return nil
 }
 
-func (c *PubSubClient) Close() {
+// Close disconnects the client from the Twitch PubSub endpoint.
+// If the client is already connected, Close() will return an error.
+func (c *PubSubClient) Close() error {
 	if c.IsConnected() {
 		c.mu.Lock()
 		c.isConnected = false
@@ -123,17 +131,20 @@ func (c *PubSubClient) Close() {
 		close(c.stop)
 		c.conn.Close()
 	} else {
-		errors.New("PubSub Client connection is already closed")
+		return errors.New("PubSub Client connection is already closed")
 	}
+	return nil
 }
 
-// Shutdown tells every thread to stop if any one of them signals shutdown.
+// Shutdown tells every goroutine to stop if any one of them signals shutdown.
 // Closes the connection and attempt to reconnect.
 func (c *PubSubClient) shutdown() {
 	c.Close()
 	go c.reconnect()
 }
 
+// Updates the exponential backoff reconnect time and attempts to reconnect
+// to the Twitch PubSub endpoint after this time period.
 func (c *PubSubClient) reconnect() {
 	if c.reconnectTime < maxReconnectTime {
 		c.reconnectTime *= 2
@@ -145,6 +156,7 @@ func (c *PubSubClient) reconnect() {
 	c.Connect()
 }
 
+// reader reads messages from the connection and passes it onto the handler.
 func (c *PubSubClient) reader() {
 	for {
 		select {
@@ -162,6 +174,7 @@ func (c *PubSubClient) reader() {
 	}
 }
 
+// handle determines the type of message and calls the corresponding handler.
 func (c *PubSubClient) handle(msg []byte) {
 	builtMsg := new(PubSubMessage)
 	err := json.Unmarshal([]byte(msg), builtMsg)
@@ -206,6 +219,8 @@ func (c *PubSubClient) handle(msg []byte) {
 	} 
 }
 
+// writer handles transmitting regular ping messages and determines if a pong response is in time.
+// Also writes any messages from the send channel.
 func (c *PubSubClient) writer() {
 	pingTicker := time.NewTicker(pingPeriod)
 	defer pingTicker.Stop()
@@ -239,6 +254,7 @@ func (c *PubSubClient) writer() {
 	}
 }
 
+// write calls WriteMessage on the underlying client.
 func (c *PubSubClient) write(msg []byte) error {
 	err := c.conn.WriteMessage(websocket.TextMessage, msg)
 	if err != nil {
@@ -248,6 +264,7 @@ func (c *PubSubClient) write(msg []byte) error {
 	return nil
 }
 
+// listen creates a listen request and sends it to the send channel.
 func (c *PubSubClient) listen(topics *[]string) {
 	request := pubSubListenRequest{
 		Type:  "LISTEN",
@@ -259,6 +276,7 @@ func (c *PubSubClient) listen(topics *[]string) {
 	c.sendChan <- bytes
 }
 
+// generateNonce creates a nonce string of variable length.
 func generateNonce(length int) string {
 	var curr strings.Builder
 	for i := 0; i < length; i++ {
