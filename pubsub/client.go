@@ -55,7 +55,6 @@ func (c *PubSubClient) Connect() error {
 				return
 			}
 			ret := string(msg)
-			fmt.Println("RX:", ret)
 			c.Messages <- ret
 		}
 	}()
