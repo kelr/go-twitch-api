@@ -1,19 +1,21 @@
 package pubsub
 
 import (
-	"fmt"
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/websocket"
 	"golang.org/x/oauth2"
 	"math/rand"
 	"net/http"
 	"strings"
+	"time"
 )
 
 const (
-	pubSubURL = "wss://pubsub-edge.twitch.tv"
-	nonceSet  = "abcdedfghijklmnopqrstABCDEFGHIJKLMNOP123456789"
+	pubSubURL  = "wss://pubsub-edge.twitch.tv"
+	nonceSet   = "abcdedfghijklmnopqrstABCDEFGHIJKLMNOP123456789"
+	pingPeriod = 200 * time.Second
 )
 
 type PubSubClient struct {
@@ -24,7 +26,7 @@ type PubSubClient struct {
 	AuthToken     *oauth2.Token
 }
 
-func NewPubSubClient(config *oauth2.Config, userToken *oauth2.Token) (*PubSubClient) {
+func NewPubSubClient(config *oauth2.Config, userToken *oauth2.Token) *PubSubClient {
 	return &PubSubClient{
 		conn:          nil,
 		IsConnected:   false,
@@ -45,6 +47,7 @@ func (c *PubSubClient) Connect() error {
 	fmt.Println("PubSub connected")
 	c.IsConnected = true
 
+	// Receieve messages
 	go func() {
 		defer close(c.Messages)
 		for {
@@ -58,6 +61,20 @@ func (c *PubSubClient) Connect() error {
 			c.Messages <- ret
 		}
 	}()
+
+	// Send pings every ping interval
+	go func() {
+		ticker := time.NewTicker(pingPeriod)
+		for {
+			<-ticker.C
+			if err := c.conn.write(websocket.PingMessage, []byte{}); err != nil {
+				fmt.Println("PubSub error sending ping:", err)
+				c.IsConnected = false
+				return
+			}
+		}
+	}()
+
 	return nil
 }
 
@@ -77,10 +94,10 @@ type pubSubResponse struct {
 }
 
 type pubSubMessageResponse struct {
-	Type  string `json:"type"`
-	Data  struct {
-		Topic    string `json:"topic"`
-		Message string   `json:"message"`
+	Type string `json:"type"`
+	Data struct {
+		Topic   string `json:"topic"`
+		Message string `json:"message"`
 	} `json:"data"`
 }
 
