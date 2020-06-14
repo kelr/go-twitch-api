@@ -79,7 +79,7 @@ func (c *PubSubClient) Connect() error {
 	return nil
 }
 
-func (c *PubSubClient) write(msg []byte) err {
+func (c *PubSubClient) write(msg []byte) error {
 	err := c.conn.WriteMessage(websocket.TextMessage, msg)
 	if err != nil {
 		fmt.Println("PubSub error in tx:", err)
