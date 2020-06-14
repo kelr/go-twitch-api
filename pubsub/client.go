@@ -20,7 +20,7 @@ type PubSubClient struct {
 	conn          *websocket.Conn
 	IsConnected   bool
 	refreshClient *http.Client
-	messages      chan string
+	Messages      chan string
 	AuthToken     *oauth2.Token
 }
 
@@ -46,7 +46,7 @@ func (c *PubSubClient) Connect() error {
 	c.IsConnected = true
 
 	go func() {
-		defer close(c.messages)
+		defer close(c.Messages)
 		for {
 			_, msg, err := c.conn.ReadMessage()
 			if err != nil {
@@ -56,7 +56,7 @@ func (c *PubSubClient) Connect() error {
 			}
 			ret := string(msg)
 			fmt.Println("RX:", ret)
-			c.messages <- ret
+			c.Messages <- ret
 		}
 	}()
 	return nil
