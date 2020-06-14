@@ -67,7 +67,7 @@ func (c *PubSubClient) Connect() error {
 		ticker := time.NewTicker(pingPeriod)
 		for {
 			<-ticker.C
-			if err := c.conn.write(websocket.PingMessage, []byte{}); err != nil {
+			if err := c.conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 				fmt.Println("PubSub error sending ping:", err)
 				c.IsConnected = false
 				return
