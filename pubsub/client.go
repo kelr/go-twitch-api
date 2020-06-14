@@ -69,8 +69,7 @@ func (c *PubSubClient) Connect() error {
 		for {
 			<-ticker.C
 			pingMsg := `{"type": "PING"}`
-			if err := c.conn.WriteMessage(websocket.PingMessage, []byte(pingMsg)); err != nil {
-				fmt.Println("PubSub error sending ping:", err)
+			if err := c.write([]byte(pingMsg)); err != nil {
 				c.IsConnected = false
 				return
 			}
@@ -80,13 +79,14 @@ func (c *PubSubClient) Connect() error {
 	return nil
 }
 
-func (c *PubSubClient) write(msg []byte) {
+func (c *PubSubClient) write(msg []byte) err {
 	err := c.conn.WriteMessage(websocket.TextMessage, msg)
 	if err != nil {
 		fmt.Println("PubSub error in tx:", err)
 		c.IsConnected = false
-		return
+		return err
 	}
+	return nil
 }
 
 type pubSubResponse struct {
