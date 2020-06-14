@@ -1,6 +1,7 @@
-package helix
+package auth
 
 import (
+	"encoding/json"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
@@ -8,6 +9,8 @@ import (
 	"fmt"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/twitch"
+	"io"
+	"os"
 )
 
 const (
@@ -51,6 +54,53 @@ func TokenExchange(config *oauth2.Config, authCode string) (*oauth2.Token, error
 	return token, nil
 }
 
+func FlushTokenFile(tokenFile string, token *oauth2.Token) error {
+	f, err := os.OpenFile(tokenFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return encodeFile(f, token)
+}
+
+func LoadTokenFile(tokenFile string) (*oauth2.Token, error) {
+	f, err := os.OpenFile(tokenFile, os.O_RDWR, 0755)
+	if err != nil {
+		// Handle PathError specifically as it indicates the file does not exist
+		if _, ok := err.(*os.PathError); ok {
+			fmt.Println("No saved token file found.")
+			os.Exit(0)
+		} else {
+			return nil, err
+		}
+	}
+	defer f.Close()
+	token, err := decodeFile(f)
+	if err != nil {
+		return nil, err
+	}
+	return token, nil
+}
+
+func encodeFile(file *os.File, token *oauth2.Token) error {
+	enc := json.NewEncoder(file)
+	enc.SetIndent("", " ")
+	err := enc.Encode(token)
+	if err == io.EOF {
+		err = nil
+	}
+	return err
+}
+
+func decodeFile(file *os.File) (*oauth2.Token, error) {
+	token := new(oauth2.Token)
+	err := json.NewDecoder(file).Decode(token)
+	if err == io.EOF {
+		err = nil
+	}
+	return token, err
+}
+
 // Generate random 32 character state string
 func generateState() (string, error) {
 	var buf [stateLen]byte
@@ -60,3 +110,4 @@ func generateState() (string, error) {
 
 	return hex.EncodeToString(buf[:]), nil
 }
+
