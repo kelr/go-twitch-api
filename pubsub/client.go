@@ -30,7 +30,7 @@ func NewPubSubClient(config *oauth2.Config, userToken *oauth2.Token) (*PubSubCli
 		IsConnected:   false,
 		AuthToken:     userToken,
 		refreshClient: config.Client(context.Background(), userToken),
-		messages:      make(chan string, 1),
+		Messages:      make(chan<- string, 1),
 	}
 }
 
@@ -56,7 +56,7 @@ func (c *PubSubClient) Connect() error {
 			}
 			ret := string(msg)
 			fmt.Println("RX:", ret)
-			//c.messages <- ret
+			c.messages <- ret
 		}
 	}()
 	return nil
