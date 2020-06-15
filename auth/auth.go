@@ -63,7 +63,7 @@ func FlushTokenFile(tokenFile string, token *oauth2.Token) error {
 	return encodeFile(f, token)
 }
 
-func LoadTokenFile(tokenFile string) (*oauth2.Token, error) {
+func LoadTokenFile(config *oauth2.Config, tokenFile string) (*oauth2.Token, error) {
 	f, err := os.OpenFile(tokenFile, os.O_RDWR, 0755)
 	if err != nil {
 		// Handle PathError specifically as it indicates the file does not exist
@@ -79,7 +79,19 @@ func LoadTokenFile(tokenFile string) (*oauth2.Token, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return token, nil
+}
+
+// VerifyToken checks the input token for validity, and will return a refreshed token
+// if it has expired. If the token is still valid, will return the same token.
+func VerifyToken(config *oauth2.Config, oldToken *oauth2.Token) *oauth2.Token {
+	tokenSource := config.TokenSource(oauth2.NoContext, oldToken)
+	newToken, err := tokenSource.Token()
+	if err != nil {
+	    fmt.Println(err)
+	}
+	return newToken
 }
 
 func encodeFile(file *os.File, token *oauth2.Token) error {
