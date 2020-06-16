@@ -62,6 +62,7 @@ type PubSubClient struct {
 	isConnected bool
 	mu *sync.Mutex
 	channelPointHandlers map[string]func(*ChannelPointsEvent)
+	chatModActionsHandlers map[string]func(*ChatModActionsEvent)
 }
 
 // Returns a new PubSubClient. 
@@ -77,6 +78,7 @@ func NewPubSubClient(config *oauth2.Config, userToken *oauth2.Token) *PubSubClie
 		isConnected: false,
 		mu: &sync.Mutex{},
 		channelPointHandlers: make(map[string]func(*ChannelPointsEvent)),
+		chatModActionsHandlers: make(map[string]func(*ChatModActionsEvent)),
 	}
 }
 
@@ -102,14 +104,7 @@ func (c *PubSubClient) Connect() error {
 		go c.reader()
 		go c.writer()
 
-		// Listen on all registered topics
-		var topics []string
-		for id := range c.channelPointHandlers {
-			topics = append(topics, channelPointTopic + id)
-		}
-		if len(topics) > 0 {
-			c.listen(&topics)
-		}
+		c.listenAll()
 
 		c.mu.Lock()
 		c.isConnected = true
@@ -119,6 +114,20 @@ func (c *PubSubClient) Connect() error {
 		errors.New("PubSub Client is already connected")
 	}
 	return nil
+}
+
+func (c *PubSubClient) listenAll() {
+	// Listen on all registered topics
+	var topics []string
+	for id := range c.channelPointHandlers {
+		topics = append(topics, channelPointTopic + id)
+	}
+	for id := range c.chatModActionsHandlers {
+		topics = append(topics, chatModActionsTopic + id)
+	}
+	if len(topics) > 0 {
+		c.listen(&topics)
+	}
 }
 
 // Close disconnects the client from the Twitch PubSub endpoint.
@@ -183,40 +192,83 @@ func (c *PubSubClient) handle(msg []byte) {
 		return
 	}
 
+	// Since the Message field is a string of encoded JSON, we have to
+	// determine the type of message and unmarshal the Message field specifically.
 	switch builtMsg.Type {
 	case "MESSAGE":
-		split := strings.Split(builtMsg.Data.Topic, ".")
-		topic := split[0] + "."
-		id := split[1]
+		s := strings.SplitAfter(builtMsg.Data.Topic, ".")
+		topic, id := s[0], s[1]
 		switch topic {
 		case channelPointTopic:
-			event := new(ChannelPointsEvent)
-			err = json.Unmarshal([]byte(builtMsg.Data.Message), event)
-			if err != nil {
+			if err = c.handleChannelPointsEvent(builtMsg.Data.Message, id); err != nil {
 				fmt.Println(err)
 				return
 			}
-			c.channelPointHandlers[id](event)
+		case chatModActionsTopic:
+			if err = c.handleChatModActionsEvent(builtMsg.Data.Message, id); err != nil {
+				fmt.Println(err)
+				return
+			}
 		default:
 			fmt.Println("Unknown topic:", topic)
 		}
 	case "RESPONSE":
-		resp := new(pubSubResponse)
-		err := json.Unmarshal([]byte(msg), builtMsg)
-		if err != nil {
-			fmt.Println(msg, err)
+		if err = c.handleResponse(msg); err != nil {
+			fmt.Println(err)
 			return
 		}
-		if resp.Error != "" {
-			fmt.Println("PubSub client received error response:", resp.Error)
-		}
 	case "PONG":
-		c.pongRx<- true
+		c.handlePong()
 	case "RECONNECT":
-		fmt.Println("PubSub client received reconnect message.")
+		c.handleReconnect()
 	default:
-		fmt.Println("Unknown message:", builtMsg.Type)
+		fmt.Println("PubSub Client unknown message received:", builtMsg.Type)
 	} 
+}
+
+func (c *PubSubClient) handleChannelPointsEvent(message string, id string) error {
+	event := new(ChannelPointsEvent)
+	err := json.Unmarshal([]byte(message), event)
+	if err != nil {
+		return err
+	}
+	c.channelPointHandlers[id](event)
+	return nil
+}
+
+func (c *PubSubClient) handleChatModActionsEvent(message string, id string) error {
+	event := new(ChatModActionsEvent)
+	err := json.Unmarshal([]byte(message), event)
+	if err != nil {
+		return err
+	}
+	c.chatModActionsHandlers[id](event)
+	return nil
+}
+
+// handleResponse checks for errors in the RESPONSE message received after a LISTEN request.
+func (c *PubSubClient) handleResponse(message []byte) error {
+	resp := new(pubSubResponse)
+	err := json.Unmarshal(message, resp)
+	if err != nil {
+		fmt.Println(message, err)
+		return err
+	}
+	if resp.Error != "" {
+		return fmt.Errorf("PubSub client received error response:%d", resp.Error)
+	}
+	return nil
+}
+
+// handlePong notifies on the pongRx channel that a Pong was received.
+func (c *PubSubClient) handlePong() {
+	c.pongRx<- true
+}
+
+// handlReconnect prepares for the PubSub endpoint to go down within the next 30s.
+func (c *PubSubClient) handleReconnect() {
+	// TODO: prepare for reconnect after shutdown within 30s
+	fmt.Println("PubSub client received reconnect message.")
 }
 
 // writer handles transmitting regular ping messages and determines if a pong response is in time.
