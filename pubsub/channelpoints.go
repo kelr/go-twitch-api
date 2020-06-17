@@ -1,8 +1,8 @@
 package pubsub
 
 import (
-	"time"
 	"fmt"
+	"time"
 )
 
 const (

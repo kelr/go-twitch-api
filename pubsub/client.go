@@ -3,15 +3,15 @@ package pubsub
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"golang.org/x/oauth2"
 	"math/rand"
 	"net/http"
 	"strings"
-	"time"
 	"sync"
-	"errors"
+	"time"
 )
 
 const (
@@ -52,33 +52,35 @@ type pubSubListenRequest struct {
 
 // PubSubClient represents a connection and its state to the Twitch pubsub endpoint.
 type PubSubClient struct {
-	conn          *websocket.Conn
-	refreshClient *http.Client
-	sendChan      chan []byte
-	AuthToken     *oauth2.Token
-	stop          chan bool
-	pongRx        chan bool
-	reconnectTime int
-	isConnected bool
-	mu *sync.Mutex
-	channelPointHandlers map[string]func(*ChannelPointsEvent)
+	conn                   *websocket.Conn
+	refreshClient          *http.Client
+	sendChan               chan []byte
+	AuthToken              *oauth2.Token
+	stop                   chan bool
+	pongRx                 chan bool
+	reconnectTime          int
+	isConnected            bool
+	mu                     *sync.Mutex
+	channelPointHandlers   map[string]func(*ChannelPointsEvent)
 	chatModActionsHandlers map[string]func(*ChatModActionsEvent)
+	whispersHandlers       map[string]func(*WhispersEvent)
 }
 
-// Returns a new PubSubClient. 
+// Returns a new PubSubClient.
 func NewPubSubClient(config *oauth2.Config, userToken *oauth2.Token) *PubSubClient {
 	return &PubSubClient{
-		conn:          nil,
-		AuthToken:     userToken,
-		refreshClient: config.Client(context.Background(), userToken),
-		sendChan:      make(chan []byte, 256),
-		stop:          make(chan bool),
-		pongRx:          make(chan bool, 1),
-		reconnectTime: 1,
-		isConnected: false,
-		mu: &sync.Mutex{},
-		channelPointHandlers: make(map[string]func(*ChannelPointsEvent)),
+		conn:                   nil,
+		AuthToken:              userToken,
+		refreshClient:          config.Client(context.Background(), userToken),
+		sendChan:               make(chan []byte, 256),
+		stop:                   make(chan bool),
+		pongRx:                 make(chan bool, 1),
+		reconnectTime:          1,
+		isConnected:            false,
+		mu:                     &sync.Mutex{},
+		channelPointHandlers:   make(map[string]func(*ChannelPointsEvent)),
 		chatModActionsHandlers: make(map[string]func(*ChatModActionsEvent)),
+		whispersHandlers:       make(map[string]func(*WhispersEvent)),
 	}
 }
 
@@ -90,7 +92,7 @@ func (c *PubSubClient) IsConnected() bool {
 	return result
 }
 
-// Connect to the Twitch PubSub endpoint and listen on all registered topics. 
+// Connect to the Twitch PubSub endpoint and listen on all registered topics.
 // Will automatically reconnect on failure.
 // with exponential backoff. Returns an error if the client is already connected.
 func (c *PubSubClient) Connect() error {
@@ -120,10 +122,16 @@ func (c *PubSubClient) listenAll() {
 	// Listen on all registered topics
 	var topics []string
 	for id := range c.channelPointHandlers {
-		topics = append(topics, channelPointTopic + id)
+		fmt.Println("Listening:", channelPointTopic+id)
+		topics = append(topics, channelPointTopic+id)
 	}
 	for id := range c.chatModActionsHandlers {
-		topics = append(topics, chatModActionsTopic + id)
+		fmt.Println("Listening:", chatModActionsTopic+id)
+		topics = append(topics, chatModActionsTopic+id)
+	}
+	for id := range c.whispersHandlers {
+		fmt.Println("Listening:", whispersTopic+id)
+		topics = append(topics, whispersTopic+id)
 	}
 	if len(topics) > 0 {
 		c.listen(&topics)
@@ -186,7 +194,7 @@ func (c *PubSubClient) reader() {
 // handle determines the type of message and calls the corresponding handler.
 func (c *PubSubClient) handle(msg []byte) {
 	builtMsg := new(PubSubMessage)
-	err := json.Unmarshal([]byte(msg), builtMsg)
+	err := json.Unmarshal(msg, builtMsg)
 	if err != nil {
 		fmt.Println(msg, err)
 		return
@@ -209,6 +217,11 @@ func (c *PubSubClient) handle(msg []byte) {
 				fmt.Println(err)
 				return
 			}
+		case whispersTopic:
+			if err = c.handleWhispersEvent(builtMsg.Data.Message, id); err != nil {
+				fmt.Println(err)
+				return
+			}
 		default:
 			fmt.Println("Unknown topic:", topic)
 		}
@@ -223,7 +236,7 @@ func (c *PubSubClient) handle(msg []byte) {
 		c.handleReconnect()
 	default:
 		fmt.Println("PubSub Client unknown message received:", builtMsg.Type)
-	} 
+	}
 }
 
 func (c *PubSubClient) handleChannelPointsEvent(message string, id string) error {
@@ -246,6 +259,36 @@ func (c *PubSubClient) handleChatModActionsEvent(message string, id string) erro
 	return nil
 }
 
+func (c *PubSubClient) handleWhispersEvent(message string, id string) error {
+	event := new(WhispersEvent)
+	tmp := new(WhispersEventDecode)
+	err := json.Unmarshal([]byte(message), tmp)
+	if err != nil {
+		return err
+	}
+
+	switch tmp.Type {
+	case "whisper_sent":
+		// TODO
+	case "whisper_received":
+		// TODO
+	case "thread":
+		// Thread is not handled as of yet.
+		return nil
+	default:
+		return fmt.Errorf("Unknown whispers type: %d", tmp.Type)
+	}
+
+	// The data field is a double escaped JSON string so we need to unmarshal it twice.
+	event.Type = tmp.Type
+	err = json.Unmarshal([]byte(tmp.Data), &event.Data)
+	if err != nil {
+		return err
+	}
+	c.whispersHandlers[id](event)
+	return nil
+}
+
 // handleResponse checks for errors in the RESPONSE message received after a LISTEN request.
 func (c *PubSubClient) handleResponse(message []byte) error {
 	resp := new(pubSubResponse)
@@ -262,7 +305,7 @@ func (c *PubSubClient) handleResponse(message []byte) error {
 
 // handlePong notifies on the pongRx channel that a Pong was received.
 func (c *PubSubClient) handlePong() {
-	c.pongRx<- true
+	c.pongRx <- true
 }
 
 // handlReconnect prepares for the PubSub endpoint to go down within the next 30s.
