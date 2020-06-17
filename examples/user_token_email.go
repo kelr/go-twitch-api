@@ -1,11 +1,13 @@
 // An example to obtain a user authentication token for user's email.
-// Uses OAuth2 Authorization Code Flow
+// Uses OAuth2 Authorization Code Flow.
+// User is responsible for the secure storage of the token.
 package main
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/kelr/gundyr/helix"
+	"github.com/kelr/gundyr/auth"
 )
 
 // Provide your Client ID and secret. Set your redirect URI to one that you own.
@@ -22,14 +24,14 @@ var scopes = []string{"user:read:email"}
 
 func main() {
 	// Setup OAuth2 configuration
-	config, err := helix.NewUserAuth(clientID, clientSecret, redirectURI, &scopes)
+	config, err := auth.NewUserAuth(clientID, clientSecret, redirectURI, &scopes)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
 	// Get the URL to send to the user and the state code to protect against CSRF attacks.
-	url, state := helix.GetAuthCodeURL(config)
+	url, state := auth.GetAuthCodeURL(config)
 	fmt.Println(url)
 	fmt.Println("Ensure that state recieved at URI is:", state)
 
@@ -42,25 +44,21 @@ func main() {
 
 	// Obtain the user token through the code. This token can be reused as long as
 	// it has not expired, but the auth code cannot be reused.
-	token, err := helix.TokenExchange(config, authCode)
+	token, err := auth.TokenExchange(config, authCode)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
 	// Create the API client. User token will be automatically refreshed.
-	client, err := helix.NewTwitchClientUserAuth(config, token)
+	client, err := helix.NewClientUserAuth(config, token)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	// Get user information, will include email for the user you have a token from
-	opt := &helix.GetUsersOpt{
-		Login: targetUsername,
-	}
-
-	response, err := client.GetUsers(opt)
+	// Get user information, will include email for the user you have a token from.
+	response, err := client.GetUsers(&helix.GetUsersOpt{Login: targetUsername})
 	if err != nil {
 		fmt.Println("Error:", err)
 		return

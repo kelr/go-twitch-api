@@ -1,5 +1,9 @@
 package helix
 
+import (
+	"encoding/json"
+)
+
 const (
 	getStreamsPath         = "/streams"
 	getStreamsMetadataPath = "/streams/metadata"
@@ -23,14 +27,15 @@ type GetStreamsResponse struct {
 		ID           string `json:"id,omitempty"`
 		Language     string `json:"language,omitempty"`
 		StartedAt    string `json:"started_at,omitempty"`
-		TagIDs       string `json:"tag_ids,omitempty"`
 		ThumbnailURL string `json:"thumbnail_url,omitempty"`
 		Title        string `json:"title,omitempty"`
 		Type         string `json:"type,omitempty"`
 		UserID       string `json:"user_id,omitempty"`
 		Username     string `json:"user_name,omitempty"`
 		ViewerCount  int    `json:"viewer_count,omitempty"`
+		TagIDs       []string `json:"tag_ids,omitempty"`
 	} `json:"data,omitempty"`
+
 	Pagination struct {
 		Cursor string `json:"cursor,omitempty"`
 	} `json:"pagination,omitempty"`
@@ -40,11 +45,16 @@ type GetStreamsResponse struct {
 // returns a Pagination field used to query for more streams
 //
 // https://dev.twitch.tv/docs/api/reference#get-streams
-func (client *TwitchClient) GetStreams(opt *GetStreamsOpt) (*GetStreamsResponse, error) {
+func (client *Client) GetStreams(opt *GetStreamsOpt) (*GetStreamsResponse, error) {
 	data := new(GetStreamsResponse)
-	_, err := client.sendRequest(getStreamsPath, opt, data, "GET")
+	resp, err := client.getRequest(getStreamsPath, opt)
 	if err != nil {
 		return nil, err
 	}
-	return data, err
+
+	err = json.Unmarshal(resp.Data, &data)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }

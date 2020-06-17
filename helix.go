@@ -1,33 +1,33 @@
 // Provides easier to use wrapper functions for the Helix API client
-package helix
+package gundyr
 
 import (
 	"errors"
 	"github.com/kelr/gundyr/helix"
 )
 
-type HelixClient struct {
-	*helix.TwitchClient
+type Helix struct {
+	client *helix.HelixClient
 }
 
-// Creates a client credentials helix API client wrapper
-func NewHelixClient(clientID string, clientSecret string) (*HelixClient, error) {
-	client, err := helix.NewTwitchClient(clientID, clientSecret)
+// NewHelix returns returns a client credentials Helix API client wrapper
+func NewHelix(clientID string, clientSecret string) (*Helix, error) {
+	client, err := helix.NewClient(clientID, clientSecret)
 	if err != nil {
 		return nil, err
 	}
-	return &HelixClient{
+	return &Helix{
 		client,
 	}, nil
 }
 
-// Converts a user ID string to a username string
-func (c *HelixClient) IdToUser(userId string) (string, error) {
+// IdToUser converts a user ID string to a username string.
+func (c *Helix) IdToUser(userId string) (string, error) {
 	opt := &helix.GetUsersOpt{
 		ID: userId,
 	}
 
-	response, err := c.GetUsers(opt)
+	response, err := c.client.GetUsers(opt)
 	if err != nil {
 		return "", err
 	}
@@ -38,13 +38,13 @@ func (c *HelixClient) IdToUser(userId string) (string, error) {
 	return response.Data[0].Login, nil
 }
 
-// Converts a username string to a user ID string
-func (c *HelixClient) UserToId(username string) (string, error) {
+// UserToId converts a username string to a user ID string.
+func (c *Helix) UserToId(username string) (string, error) {
 	opt := &helix.GetUsersOpt{
 		Login: username,
 	}
 
-	response, err := c.GetUsers(opt)
+	response, err := c.client.GetUsers(opt)
 	if err != nil {
 		return "", err
 	}

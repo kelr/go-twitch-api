@@ -2,6 +2,7 @@ package helix
 
 import (
 	"time"
+	"encoding/json"
 )
 
 const (
@@ -32,7 +33,7 @@ type GetUsersData struct {
 	Description     string `json:"description,omitempty"`
 	ProfileImageURL string `json:"profile_image_url,omitempty"`
 	OfflineImageURL string `json:"offline_image_url,omitempty"`
-	ViewCount       string `json:"view_count,omitempty"`
+	ViewCount       int `json:"view_count,omitempty"`
 	Email           string `json:"email,omitempty"`
 }
 
@@ -45,13 +46,21 @@ type GetUsersResponse struct {
 // Returns a GetUsersResponse constructed from the response from the API endpoint.
 //
 // https://dev.twitch.tv/docs/api/reference#get-users
-func (client *TwitchClient) GetUsers(opt *GetUsersOpt) (*GetUsersResponse, error) {
+func (client *Client) GetUsers(opt *GetUsersOpt) (*GetUsersResponse, error) {
 	data := new(GetUsersResponse)
-	_, err := client.sendRequest(getUsersPath, opt, data, "GET")
+
+	resp, err := client.getRequest(getUsersPath, opt)
 	if err != nil {
 		return nil, err
 	}
-	return data, err
+
+	// Decode the response
+	err = json.Unmarshal(resp.Data, data)
+	if err != nil {
+		return nil, err
+	}
+	
+	return data, nil
 }
 
 // GetUsersFollowsOpt defines the options available for Get Users Follows.
@@ -82,13 +91,20 @@ type GetUsersFollowsResponse struct {
 // Returns a GetUsersFollowsResponse constructed from the response from the API endpoint.
 //
 // https://dev.twitch.tv/docs/api/reference#get-users-follows
-func (client *TwitchClient) GetUsersFollows(opt *GetUsersFollowsOpt) (*GetUsersFollowsResponse, error) {
+func (client *Client) GetUsersFollows(opt *GetUsersFollowsOpt) (*GetUsersFollowsResponse, error) {
 	data := new(GetUsersFollowsResponse)
-	_, err := client.sendRequest(getUsersFollowsPath, opt, data, "GET")
+	resp, err := client.getRequest(getUsersFollowsPath, opt)
 	if err != nil {
 		return nil, err
 	}
-	return data, err
+
+	// Decode the response
+	err = json.Unmarshal(resp.Data, data)
+	if err != nil {
+		return nil, err
+	}
+	
+	return data, nil
 }
 
 // UpdateUserOpt defines the options available for Update User
@@ -101,13 +117,20 @@ type UpdateUserOpt struct {
 // Requires scope: user:edit
 //
 // https://dev.twitch.tv/docs/api/reference#update-user
-func (client *TwitchClient) UpdateUser(opt *UpdateUserOpt) (*GetUsersResponse, error) {
+func (client *Client) UpdateUser(opt *UpdateUserOpt) (*GetUsersResponse, error) {
 	data := new(GetUsersResponse)
-	_, err := client.sendRequest(getUsersPath, opt, data, "PUT")
+
+	resp, err := client.putRequest(getUsersPath, opt)
 	if err != nil {
 		return nil, err
 	}
-	return data, err
+
+	// Decode the response
+	err = json.Unmarshal(resp.Data, data)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }
 
 // GetUsersExtensionsData represents information about a users extensions.
@@ -128,13 +151,20 @@ type GetUserExtensionsResponse struct {
 // Requires scope user:read:broadcast
 //
 // https://dev.twitch.tv/docs/api/reference#get-users-follows
-func (client *TwitchClient) GetUserExtensions() (*GetUserExtensionsResponse, error) {
+func (client *Client) GetUserExtensions() (*GetUserExtensionsResponse, error) {
 	data := new(GetUserExtensionsResponse)
-	_, err := client.sendRequest(getUsersExtensionsPath, nil, data, "GET")
+
+	resp, err := client.getRequest(getUsersExtensionsPath, nil)
 	if err != nil {
 		return nil, err
 	}
-	return data, err
+
+	// Decode the response
+	err = json.Unmarshal(resp.Data, data)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }
 
 // GetUserActiveExtensionsOpt defines the options available for Get User Active Extensions
@@ -168,11 +198,16 @@ type GetUserActiveExtensionsResponse struct {
 // Requires scope user:read:broadcast or user:edit:broadcast
 //
 // https://dev.twitch.tv/docs/api/reference#get-user-active-extensions
-func (client *TwitchClient) GetUserActiveExtensions(opt *GetUserActiveExtensionsOpt) (*GetUserActiveExtensionsResponse, error) {
+func (client *Client) GetUserActiveExtensions(opt *GetUserActiveExtensionsOpt) (*GetUserActiveExtensionsResponse, error) {
 	data := new(GetUserActiveExtensionsResponse)
-	_, err := client.sendRequest(getUsersActiveExtensionsPath, opt, data, "GET")
+	resp, err := client.getRequest(getUsersActiveExtensionsPath, opt)
 	if err != nil {
 		return nil, err
 	}
-	return data, err
+	// Decode the response
+	err = json.Unmarshal(resp.Data, data)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }

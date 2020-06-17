@@ -19,16 +19,16 @@ func (m *mockHTTPClient) Do(req *http.Request) (*http.Response, error) {
 }
 
 // Create a HandlerFunc with the HTTP status code and body that the mock HTTP Client will respond with
-func newMockResponse(status int, body string) http.HandlerFunc {
+func newMockResponse(status int, body []byte) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(status)
-		w.Write([]byte(body))
+		w.Write(body)
 	}
 }
 
-// Create a mocked TwitchClient with a mocked HTTPClient
-func newMockTwitchClient(clientID string, clientSecret string, tokenType string, respStatus int, respBody string) *TwitchClient {
-	return &TwitchClient{
+// Create a mocked Client with a mocked HTTPClient
+func newMockClient(clientID string, clientSecret string, tokenType string, respStatus int, respBody []byte) *Client {
+	return &Client{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		conn: &mockHTTPClient{
