@@ -1,13 +1,11 @@
-// An example to obtain a user authentication token for user's email.
-// Uses OAuth2 Authorization Code Flow.
-// User is responsible for the secure storage of the token.
+// An example to obtain a user's email with a user access token.
 package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"github.com/kelr/gundyr/helix"
 	"github.com/kelr/gundyr/auth"
+	"github.com/kelr/gundyr/helix"
+	"log"
 )
 
 // Provide your Client ID and secret. Set your redirect URI to one that you own.
@@ -17,51 +15,47 @@ const (
 	clientSecret   = ""
 	redirectURI    = "http://localhost"
 	targetUsername = ""
+	tokenFile      = "token.json"
 )
 
-// Set scopes to request from the user
-var scopes = []string{"user:read:email"}
+// Load an OAuth2 token from a file and check for validity.
+// The token must have been created with a matching scope.
+func retrieveToken() *oauth2.Token {
+	token, err = auth.LoadTokenFile(config, tokenFile)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Verify that the cached token has not expired.
+	newToken := auth.VerifyToken(config, token)
+
+	// Update the token file.
+	if err := auth.FlushTokenFile(tokenFile, newToken); err != nil {
+		log.Fatal(err)
+	}
+}
 
 func main() {
+	scopes := []string{"user:read:email"}
+
 	// Setup OAuth2 configuration
 	config, err := auth.NewUserAuth(clientID, clientSecret, redirectURI, &scopes)
 	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	// Get the URL to send to the user and the state code to protect against CSRF attacks.
-	url, state := auth.GetAuthCodeURL(config)
-	fmt.Println(url)
-	fmt.Println("Ensure that state recieved at URI is:", state)
-
-	// Enter the code received by the redirect URI. Ensure that the state value
-	// obtained at the redirect URI matches the previous state value.
-	var authCode string
-	if _, err := fmt.Scan(&authCode); err != nil {
-		fmt.Println(err)
-	}
-
-	// Obtain the user token through the code. This token can be reused as long as
-	// it has not expired, but the auth code cannot be reused.
-	token, err := auth.TokenExchange(config, authCode)
-	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
 	// Create the API client. User token will be automatically refreshed.
-	client, err := helix.NewClientUserAuth(config, token)
+	// See examples/auth_token.go for an example on creating a new token.
+	client, err := helix.NewClientUserAuth(config, retrieveToken())
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
 	// Get user information, will include email for the user you have a token from.
 	response, err := client.GetUsers(&helix.GetUsersOpt{Login: targetUsername})
 	if err != nil {
-		fmt.Println("Error:", err)
-		return
+		log.Fatal(err)
 	}
 
 	// Pretty print

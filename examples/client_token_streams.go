@@ -4,8 +4,8 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"github.com/kelr/gundyr/helix"
+	"log"
 )
 
 // Provide your Client ID and secret here.

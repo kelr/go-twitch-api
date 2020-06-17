@@ -25,7 +25,7 @@ type ChatModActionsEvent struct {
 
 // ListenChatModActions subscribes a handler function to the Chat Mod Actions topic with the provided id.
 // The handler will be called with a populated ChatModActionsEvent struct when the event is received.
-func (c *PubSubClient) ListenChatModActions(id string, handler func(*ChatModActionsEvent)) error {
+func (c *Client) ListenChatModActions(id string, handler func(*ChatModActionsEvent)) error {
 	if _, ok := c.chatModActionsHandlers[id]; !ok {
 		c.chatModActionsHandlers[id] = handler
 		if c.IsConnected() {
