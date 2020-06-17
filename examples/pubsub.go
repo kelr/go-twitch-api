@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/kelr/go-twitch-api/auth"
-	"github.com/kelr/go-twitch-api/pubsub"
+	"github.com/kelr/gundyr/auth"
+	"github.com/kelr/gundyr/pubsub"
 	"golang.org/x/oauth2"
 )
 

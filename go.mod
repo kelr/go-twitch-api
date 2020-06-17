@@ -1,4 +1,4 @@
-module github.com/kelr/go-twitch-api
+module github.com/kelr/gundyr
 
 go 1.14
 
