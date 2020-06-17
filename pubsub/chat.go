@@ -15,14 +15,16 @@ type ChatModActionsEvent struct {
 		ModerationAction string   `json:"moderation_action"`
 		Args             []string `json:"args"`
 		CreatedBy        string   `json:"created_by"`
-		CreatedByUserId  string   `json:"created_by_user_id"`
-		MsgId            string   `json:"msg_id"`
-		TargetUserId     string   `json:"target_user_id"`
+		CreatedByUserID  string   `json:"created_by_user_id"`
+		MsgID            string   `json:"msg_id"`
+		TargetUserID     string   `json:"target_user_id"`
 		TargetUserLogin  string   `json:"target_user_login"`
 		FromAutomod      bool     `json:"from_automod"`
 	} `json:"data"`
 }
 
+// ListenChatModActions subscribes a handler function to the Chat Mod Actions topic with the provided id.
+// The handler will be called with a populated ChatModActionsEvent struct when the event is received.
 func (c *PubSubClient) ListenChatModActions(id string, handler func(*ChatModActionsEvent)) error {
 	if _, ok := c.chatModActionsHandlers[id]; !ok {
 		c.chatModActionsHandlers[id] = handler

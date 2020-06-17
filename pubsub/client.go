@@ -23,14 +23,14 @@ const (
 	maxReconnectTime = 600
 )
 
-// PubSubMessage contains the entire message structure receieved from a topic
-type PubSubMessage struct {
+// Message contains the entire message structure receieved from a topic
+type Message struct {
 	Type string     `json:"type,omitempty"`
-	Data PubSubData `json:"data,omitempty"`
+	Data Data `json:"data,omitempty"`
 }
 
-// PubSubData contains the topic and the message payload as an encoded JSON string.
-type PubSubData struct {
+// Data contains the topic and the message payload as an encoded JSON string.
+type Data struct {
 	Topic   string `json:"topic,omitempty"`
 	Message string `json:"message,omitempty"`
 }
@@ -50,8 +50,8 @@ type pubSubListenRequest struct {
 	} `json:"data"`
 }
 
-// PubSubClient represents a connection and its state to the Twitch pubsub endpoint.
-type PubSubClient struct {
+// Client represents a connection and its state to the Twitch pubsub endpoint.
+type Client struct {
 	conn                   *websocket.Conn
 	refreshClient          *http.Client
 	sendChan               chan []byte
@@ -66,9 +66,9 @@ type PubSubClient struct {
 	whispersHandlers       map[string]func(*WhispersEvent)
 }
 
-// Returns a new PubSubClient.
-func NewPubSubClient(config *oauth2.Config, userToken *oauth2.Token) *PubSubClient {
-	return &PubSubClient{
+// NewClient returns a new Client to communicate with the PubSub endpoints.
+func NewClient(config *oauth2.Config, userToken *oauth2.Token) *Client {
+	return &Client{
 		conn:                   nil,
 		AuthToken:              userToken,
 		refreshClient:          config.Client(context.Background(), userToken),
@@ -84,8 +84,8 @@ func NewPubSubClient(config *oauth2.Config, userToken *oauth2.Token) *PubSubClie
 	}
 }
 
-// Thread-safe check of whether or not the PubSubClient is connected.
-func (c *PubSubClient) IsConnected() bool {
+// IsConnected is a thread-safe check of whether or not the Client is connected.
+func (c *Client) IsConnected() bool {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	result := c.isConnected
@@ -95,7 +95,7 @@ func (c *PubSubClient) IsConnected() bool {
 // Connect to the Twitch PubSub endpoint and listen on all registered topics.
 // Will automatically reconnect on failure.
 // with exponential backoff. Returns an error if the client is already connected.
-func (c *PubSubClient) Connect() error {
+func (c *Client) Connect() error {
 	if !c.IsConnected() {
 		conn, _, err := websocket.DefaultDialer.Dial(pubSubURL, nil)
 		if err != nil {
@@ -118,7 +118,7 @@ func (c *PubSubClient) Connect() error {
 	return nil
 }
 
-func (c *PubSubClient) listenAll() {
+func (c *Client) listenAll() {
 	// Listen on all registered topics
 	var topics []string
 	for id := range c.channelPointHandlers {
@@ -140,7 +140,7 @@ func (c *PubSubClient) listenAll() {
 
 // Close disconnects the client from the Twitch PubSub endpoint.
 // If the client is already connected, Close() will return an error.
-func (c *PubSubClient) Close() error {
+func (c *Client) Close() error {
 	if c.IsConnected() {
 		c.mu.Lock()
 		c.isConnected = false
@@ -155,14 +155,14 @@ func (c *PubSubClient) Close() error {
 
 // Shutdown tells every goroutine to stop if any one of them signals shutdown.
 // Closes the connection and attempt to reconnect.
-func (c *PubSubClient) shutdown() {
+func (c *Client) shutdown() {
 	c.Close()
 	go c.reconnect()
 }
 
 // Updates the exponential backoff reconnect time and attempts to reconnect
 // to the Twitch PubSub endpoint after this time period.
-func (c *PubSubClient) reconnect() {
+func (c *Client) reconnect() {
 	if c.reconnectTime < maxReconnectTime {
 		c.reconnectTime *= 2
 	}
@@ -174,7 +174,7 @@ func (c *PubSubClient) reconnect() {
 }
 
 // reader reads messages from the connection and passes it onto the handler.
-func (c *PubSubClient) reader() {
+func (c *Client) reader() {
 	for {
 		select {
 		case <-c.stop:
@@ -192,8 +192,8 @@ func (c *PubSubClient) reader() {
 }
 
 // handle determines the type of message and calls the corresponding handler.
-func (c *PubSubClient) handle(msg []byte) {
-	builtMsg := new(PubSubMessage)
+func (c *Client) handle(msg []byte) {
+	builtMsg := new(Message)
 	err := json.Unmarshal(msg, builtMsg)
 	if err != nil {
 		fmt.Println(msg, err)
@@ -239,7 +239,7 @@ func (c *PubSubClient) handle(msg []byte) {
 	}
 }
 
-func (c *PubSubClient) handleChannelPointsEvent(message string, id string) error {
+func (c *Client) handleChannelPointsEvent(message string, id string) error {
 	event := new(ChannelPointsEvent)
 	err := json.Unmarshal([]byte(message), event)
 	if err != nil {
@@ -249,7 +249,7 @@ func (c *PubSubClient) handleChannelPointsEvent(message string, id string) error
 	return nil
 }
 
-func (c *PubSubClient) handleChatModActionsEvent(message string, id string) error {
+func (c *Client) handleChatModActionsEvent(message string, id string) error {
 	event := new(ChatModActionsEvent)
 	err := json.Unmarshal([]byte(message), event)
 	if err != nil {
@@ -259,9 +259,9 @@ func (c *PubSubClient) handleChatModActionsEvent(message string, id string) erro
 	return nil
 }
 
-func (c *PubSubClient) handleWhispersEvent(message string, id string) error {
+func (c *Client) handleWhispersEvent(message string, id string) error {
 	event := new(WhispersEvent)
-	tmp := new(WhispersEventDecode)
+	tmp := new(whispersEventDecode)
 	err := json.Unmarshal([]byte(message), tmp)
 	if err != nil {
 		return err
@@ -290,7 +290,7 @@ func (c *PubSubClient) handleWhispersEvent(message string, id string) error {
 }
 
 // handleResponse checks for errors in the RESPONSE message received after a LISTEN request.
-func (c *PubSubClient) handleResponse(message []byte) error {
+func (c *Client) handleResponse(message []byte) error {
 	resp := new(pubSubResponse)
 	err := json.Unmarshal(message, resp)
 	if err != nil {
@@ -304,19 +304,19 @@ func (c *PubSubClient) handleResponse(message []byte) error {
 }
 
 // handlePong notifies on the pongRx channel that a Pong was received.
-func (c *PubSubClient) handlePong() {
+func (c *Client) handlePong() {
 	c.pongRx <- true
 }
 
 // handlReconnect prepares for the PubSub endpoint to go down within the next 30s.
-func (c *PubSubClient) handleReconnect() {
+func (c *Client) handleReconnect() {
 	// TODO: prepare for reconnect after shutdown within 30s
 	fmt.Println("PubSub client received reconnect message.")
 }
 
 // writer handles transmitting regular ping messages and determines if a pong response is in time.
 // Also writes any messages from the send channel.
-func (c *PubSubClient) writer() {
+func (c *Client) writer() {
 	pingTicker := time.NewTicker(pingPeriod)
 	defer pingTicker.Stop()
 	for {
@@ -350,7 +350,7 @@ func (c *PubSubClient) writer() {
 }
 
 // write calls WriteMessage on the underlying client.
-func (c *PubSubClient) write(msg []byte) error {
+func (c *Client) write(msg []byte) error {
 	err := c.conn.WriteMessage(websocket.TextMessage, msg)
 	if err != nil {
 		fmt.Println("PubSub error in tx:", err)
@@ -360,7 +360,7 @@ func (c *PubSubClient) write(msg []byte) error {
 }
 
 // listen creates a listen request and sends it to the send channel.
-func (c *PubSubClient) listen(topics *[]string) {
+func (c *Client) listen(topics *[]string) {
 	request := pubSubListenRequest{
 		Type:  "LISTEN",
 		Nonce: generateNonce(15),

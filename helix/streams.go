@@ -5,7 +5,7 @@ const (
 	getStreamsMetadataPath = "/streams/metadata"
 )
 
-// Defines the options available for Get Streams
+// GetStreamsOpt defines the options available for Get Streams.
 type GetStreamsOpt struct {
 	After     string `url:"after,omitempty"`
 	Before    string `url:"before,omitempty"`
@@ -16,7 +16,7 @@ type GetStreamsOpt struct {
 	UserLogin string `url:"user_login,omitempty"`
 }
 
-// Response structure for a Get Streams command
+// GetStreamsResponse represents a response from a Get Streams command.
 type GetStreamsResponse struct {
 	Data []struct {
 		GameID       string `json:"game_id,omitempty"`
@@ -36,7 +36,7 @@ type GetStreamsResponse struct {
 	} `json:"pagination,omitempty"`
 }
 
-// Return a slice representing the top active streams sorted by viewcount. Also
+// GetStreams returns a slice representing the top active streams sorted by viewcount. Also
 // returns a Pagination field used to query for more streams
 //
 // https://dev.twitch.tv/docs/api/reference#get-streams

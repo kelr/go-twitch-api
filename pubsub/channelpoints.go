@@ -23,9 +23,9 @@ type ChannelPointsData struct {
 
 // RedemptionData contains metadata about the redeemed reward
 type RedemptionData struct {
-	Id         string           `json:"id"`
+	ID         string           `json:"id"`
 	User       RedemptionUser   `json:"user"`
-	ChannelId  string           `json:"channel_id"`
+	ChannelID  string           `json:"channel_id"`
 	RedeemedAt time.Time        `json:"redeemed_at"`
 	Reward     RedemptionReward `json:"reward"`
 	UserInput  string           `json:"user_input"`
@@ -34,15 +34,15 @@ type RedemptionData struct {
 
 // RedemptionUser represents the user who redeemed the reward
 type RedemptionUser struct {
-	Id          string `json:"id"`
+	ID          string `json:"id"`
 	Login       string `json:"login"`
 	DisplayName string `json:"display_name"`
 }
 
 // RedemptionReward represents information about the reward redeemed
 type RedemptionReward struct {
-	Id                    string                 `json:"id"`
-	ChannelId             string                 `json:"channel_id"`
+	ID                    string                 `json:"id"`
+	ChannelID             string                 `json:"channel_id"`
 	Title                 string                 `json:"title"`
 	Prompt                string                 `json:"prompt"`
 	Cost                  int                    `json:"cost"`
@@ -56,15 +56,15 @@ type RedemptionReward struct {
 	IsInStock             bool                   `json:"is_in_stock"`
 	MaxPerStream          RedemptionMaxPerStream `json:"max_per_stream"`
 	ShouldRedemptionsSkip bool                   `json:"should_redemptions_skip_request_queue"`
-	TemplateId            string                 `json:"template_id"`
+	TemplateID            string                 `json:"template_id"`
 	UpdatedForIndicatorAt time.Time              `json:"updated_for_indicator_at"`
 }
 
 // RedemptionImage represents the cute image used on the redemption button
 type RedemptionImage struct {
-	Url1x string `json:"url_1x"`
-	Url2x string `json:"url_2x"`
-	Url4x string `json:"url_4x"`
+	URL1x string `json:"url_1x"`
+	URL2x string `json:"url_2x"`
+	URL4x string `json:"url_4x"`
 }
 
 // RedemptionMaxPerStream represents information about redemption limits per stream
@@ -73,6 +73,8 @@ type RedemptionMaxPerStream struct {
 	MaxPerStream int  `json:"max_per_stream"`
 }
 
+// ListenChannelPoints subscribes a handler function to the Channel Points topic with the provided id.
+// The handler will be called with a populated ChannelPointsEvent struct when the event is received.
 func (c *PubSubClient) ListenChannelPoints(id string, handler func(*ChannelPointsEvent)) error {
 	if _, ok := c.channelPointHandlers[id]; !ok {
 		c.channelPointHandlers[id] = handler

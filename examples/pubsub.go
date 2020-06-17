@@ -12,7 +12,7 @@ const (
 	clientID     = ""
 	clientSecret = ""
 	redirectURI  = "http://twitch.tv"
-	userId       = ""
+	userID       = ""
 	tokenFile    = "token.json"
 )
 
@@ -52,7 +52,7 @@ func handleChannelPoints(event *pubsub.ChannelPointsEvent) {
 }
 
 func handleModActions(event *pubsub.ChatModActionsEvent) {
-	fmt.Println(event.Data.ModerationAction, event.Data.TargetUserId)
+	fmt.Println(event.Data.ModerationAction, event.Data.TargetUserID)
 }
 
 func handleWhispers(event *pubsub.WhispersEvent) {
@@ -90,7 +90,7 @@ func main() {
 	}
 	fmt.Println("Token loaded")
 
-	client := pubsub.NewPubSubClient(config, newToken)
+	client := pubsub.NewClient(config, newToken)
 	client.ListenChannelPoints(userId, handleChannelPoints)
 	client.ListenChatModActions(userId, handleModActions)
 	client.ListenWhispers(userId, handleWhispers)

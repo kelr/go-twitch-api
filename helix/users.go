@@ -11,16 +11,18 @@ const (
 	getUsersActiveExtensionsPath = "/users/extensions"
 )
 
+// PaginationData represents the current ID for a multi-page response.
 type PaginationData struct {
 	Cursor string `json:"cursor,omitempty"`
 }
 
-// Defines the options available for Get Users
+// GetUsersOpt defines the options available for Get Users.
 type GetUsersOpt struct {
 	ID    string `url:"id,omitempty"`
 	Login string `url:"login,omitempty"`
 }
 
+// GetUsersData represents information about a user.
 type GetUsersData struct {
 	ID              string `json:"id,omitempty"`
 	Login           string `json:"login,omitempty"`
@@ -28,18 +30,19 @@ type GetUsersData struct {
 	Type            string `json:"type,omitempty"`
 	BroadcasterType string `json:"broadcaster_type,omitempty"`
 	Description     string `json:"description,omitempty"`
-	ProfileImageUrl string `json:"profile_image_url,omitempty"`
-	OfflineImageUrl string `json:"offline_image_url,omitempty"`
+	ProfileImageURL string `json:"profile_image_url,omitempty"`
+	OfflineImageURL string `json:"offline_image_url,omitempty"`
 	ViewCount       string `json:"view_count,omitempty"`
 	Email           string `json:"email,omitempty"`
 }
 
-// Response structure for a Get Users command
+// GetUsersResponse represents a response from a Get Users command
 type GetUsersResponse struct {
 	Data []GetUsersData `json:"data,omitempty"`
 }
 
-// Return a slice representing the information for the requested user(s)
+// GetUsers returns information about a Twitch user.
+// Returns a GetUsersResponse constructed from the response from the API endpoint.
 //
 // https://dev.twitch.tv/docs/api/reference#get-users
 func (client *TwitchClient) GetUsers(opt *GetUsersOpt) (*GetUsersResponse, error) {
@@ -51,7 +54,7 @@ func (client *TwitchClient) GetUsers(opt *GetUsersOpt) (*GetUsersResponse, error
 	return data, err
 }
 
-// Defines the options available for Get Users Follows
+// GetUsersFollowsOpt defines the options available for Get Users Follows.
 type GetUsersFollowsOpt struct {
 	After  string `url:"after,omitempty"`
 	First  int    `url:"first,omitempty"`
@@ -59,6 +62,7 @@ type GetUsersFollowsOpt struct {
 	ToID   string `url:"to_id,omitempty"`
 }
 
+// GetUsersFollowsData represents information about a user follow.
 type GetUsersFollowsData struct {
 	FollowedAt time.Time `json:"followed_at,omitempty"`
 	FromID     string    `json:"from_id,omitempty"`
@@ -67,14 +71,15 @@ type GetUsersFollowsData struct {
 	ToName     string    `json:"to_name,omitempty"`
 }
 
-// Response structure for a Get Users Follows command
+// GetUsersFollowsResponse represents a response from a Get Users Follows command
 type GetUsersFollowsResponse struct {
 	Total      int                   `json:"total,omitempty"`
 	Data       []GetUsersFollowsData `json:"data,omitempty"`
 	Pagination PaginationData        `json:"pagination,omitempty"`
 }
 
-// Return a slice representing the followers from ids or followers to ids
+// GetUsersFollows obtains information about who a user is following or who follows a user.
+// Returns a GetUsersFollowsResponse constructed from the response from the API endpoint.
 //
 // https://dev.twitch.tv/docs/api/reference#get-users-follows
 func (client *TwitchClient) GetUsersFollows(opt *GetUsersFollowsOpt) (*GetUsersFollowsResponse, error) {
@@ -86,12 +91,13 @@ func (client *TwitchClient) GetUsersFollows(opt *GetUsersFollowsOpt) (*GetUsersF
 	return data, err
 }
 
-// Defines the options available for Update User
+// UpdateUserOpt defines the options available for Update User
 type UpdateUserOpt struct {
 	Description string `url:"description"`
 }
 
-// Updates the description of a user. Requires a user token for the user to be updated.
+// UpdateUser updates the description of a user. Requires a user token for the user to be updated.
+// Returns a GetUsersResponse constructed from the response from the API endpoint.
 // Requires scope: user:edit
 //
 // https://dev.twitch.tv/docs/api/reference#update-user
@@ -104,6 +110,7 @@ func (client *TwitchClient) UpdateUser(opt *UpdateUserOpt) (*GetUsersResponse, e
 	return data, err
 }
 
+// GetUsersExtensionsData represents information about a users extensions.
 type GetUsersExtensionsData struct {
 	ID          string   `json:"id,omitempty"`
 	Version     string   `json:"version,omitempty"`
@@ -112,12 +119,12 @@ type GetUsersExtensionsData struct {
 	Type        []string `json:"type,omitempty"`
 }
 
-// Response structure for a Get Users Extensions command
+// GetUserExtensionsResponse represents a response from a Get Users Extensions command
 type GetUserExtensionsResponse struct {
 	Data []GetUsersExtensionsData `json:"data,omitempty"`
 }
 
-// Returns a list of active and inactive extensions for a user identified by the user token
+// GetUserExtensions returns information about active and inactive extensions for a user identified by the user token.
 // Requires scope user:read:broadcast
 //
 // https://dev.twitch.tv/docs/api/reference#get-users-follows
@@ -130,10 +137,12 @@ func (client *TwitchClient) GetUserExtensions() (*GetUserExtensionsResponse, err
 	return data, err
 }
 
+// GetUserActiveExtensionsOpt defines the options available for Get User Active Extensions
 type GetUserActiveExtensionsOpt struct {
 	UserID string `url:"user_id"`
 }
 
+// ActiveExtension represents a currently active extension.
 type ActiveExtension struct {
 	Active  bool   `json:"active"`
 	ID      string `json:"id,omitempty"`
@@ -143,18 +152,19 @@ type ActiveExtension struct {
 	Y       int    `json:"y,omitempty"`
 }
 
+// GetUserActiveExtensionsData represents information about a users active extensions.
 type GetUserActiveExtensionsData struct {
 	Component map[string]ActiveExtension `json:"component,omitempty"`
 	Overlay   map[string]ActiveExtension `json:"overlay,omitempty"`
 	Panel     map[string]ActiveExtension `json:"panel,omitempty"`
 }
 
-// Response structure for a Get Users Extensions command
+// GetUserActiveExtensionsResponse represents a response from a Get Users Extensions command
 type GetUserActiveExtensionsResponse struct {
 	Data GetUserActiveExtensionsData `json:"data,omitempty"`
 }
 
-// Returns a list of active and inactive extensions for a user identified by the user token
+// GetUserActiveExtensions returns information about active and inactive extensions for a user identified by the user token
 // Requires scope user:read:broadcast or user:edit:broadcast
 //
 // https://dev.twitch.tv/docs/api/reference#get-user-active-extensions
