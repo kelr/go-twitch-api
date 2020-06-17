@@ -27,9 +27,9 @@ func newMockResponse(status int, body string) http.HandlerFunc {
 }
 
 // Create a mocked TwitchClient with a mocked HTTPClient
-func newMockTwitchClient(clientId string, clientSecret string, tokenType string, respStatus int, respBody string) *TwitchClient {
+func newMockTwitchClient(clientID string, clientSecret string, tokenType string, respStatus int, respBody string) *TwitchClient {
 	return &TwitchClient{
-		ClientID:     clientId,
+		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		conn: &mockHTTPClient{
 			response: newMockResponse(respStatus, respBody),

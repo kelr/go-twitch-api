@@ -34,15 +34,15 @@ func TestGetUsers(t *testing.T) {
 				Type:            "",
 				BroadcasterType: "partner",
 				Description:     "hi im strimmer :)",
-				ProfileImageUrl: "https://static-cdn.jtvnw.net/jtv_user_pictures/dallas-profile_image-1a2c906ee2c35f12-300x300.png",
-				OfflineImageUrl: "https://static-cdn.jtvnw.net/jtv_user_pictures/dallas-profile_image-1a2c906ee2c35f12-300x300.png",
+				ProfileImageURL: "https://static-cdn.jtvnw.net/jtv_user_pictures/dallas-profile_image-1a2c906ee2c35f12-300x300.png",
+				OfflineImageURL: "https://static-cdn.jtvnw.net/jtv_user_pictures/dallas-profile_image-1a2c906ee2c35f12-300x300.png",
 				ViewCount:       "999999999",
 				Email:           "testemail@gmail.com",
 			},
 		},
 	}
-	testRespJson, _ := json.Marshal(testResp)
-	client := newMockTwitchClient("test-id", "test-secret", "client", http.StatusOK, string(testRespJson))
+	testRespJSON, _ := json.Marshal(testResp)
+	client := newMockTwitchClient("test-id", "test-secret", "client", http.StatusOK, string(testRespJSON))
 
 	// Doesn't matter what we put here since the response is predetermined
 	resp, err := client.GetUsers(&GetUsersOpt{
@@ -73,11 +73,11 @@ func TestGetUsers(t *testing.T) {
 	if resp.Data[0].Description != testResp.Data[0].Description {
 		t.Errorf("got %s, expected %s", resp.Data[0].Description, testResp.Data[0].Description)
 	}
-	if resp.Data[0].ProfileImageUrl != testResp.Data[0].ProfileImageUrl {
-		t.Errorf("got %s, expected %s", resp.Data[0].ProfileImageUrl, testResp.Data[0].ProfileImageUrl)
+	if resp.Data[0].ProfileImageURL != testResp.Data[0].ProfileImageURL {
+		t.Errorf("got %s, expected %s", resp.Data[0].ProfileImageURL, testResp.Data[0].ProfileImageURL)
 	}
-	if resp.Data[0].OfflineImageUrl != testResp.Data[0].OfflineImageUrl {
-		t.Errorf("got %s, expected %s", resp.Data[0].OfflineImageUrl, testResp.Data[0].OfflineImageUrl)
+	if resp.Data[0].OfflineImageURL != testResp.Data[0].OfflineImageURL {
+		t.Errorf("got %s, expected %s", resp.Data[0].OfflineImageURL, testResp.Data[0].OfflineImageURL)
 	}
 	if resp.Data[0].ViewCount != testResp.Data[0].ViewCount {
 		t.Errorf("got %s, expected %s", resp.Data[0].ViewCount, testResp.Data[0].ViewCount)

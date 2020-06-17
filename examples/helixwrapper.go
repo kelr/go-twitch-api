@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/kelr/go-twitch-api"
+	"github.com/kelr/gundyr"
 )
 
 const (

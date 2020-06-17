@@ -3,7 +3,7 @@ package helix
 
 import (
 	"errors"
-	"github.com/kelr/go-twitch-api/helix"
+	"github.com/kelr/gundyr/helix"
 )
 
 type HelixClient struct {

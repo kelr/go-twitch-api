@@ -1,4 +1,4 @@
-# go-twitch-api
+# gundyr
 
 This library provides an easy to use interface to the [Helix Twitch API](https://dev.twitch.tv/docs/api/reference).
 
@@ -11,7 +11,7 @@ Note: This is a work in progress and a project to help me learn Go :). May not p
 Run:
 
 ```bash
-$ go get github.com/kelr/go-twitch-api/
+$ go get github.com/kelr/gundyr/
 ```
 
 ## Usage
@@ -22,7 +22,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/kelr/go-twitch-api"
+	"github.com/kelr/gundyr"
 )
 
 // Provide your Client ID and secret here.
@@ -55,7 +55,7 @@ This example gets the top 2 live streamers.
 package main
 
 import (
-	"github.com/kelr/go-twitch-api/helix"
+	"github.com/kelr/gundyr/helix"
 	"encoding/json"
 	"fmt"
 )

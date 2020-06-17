@@ -22,7 +22,7 @@ type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-// Handles communication with the Twitch API.
+// TwitchClient handles communication with the Twitch Helix API.
 type TwitchClient struct {
 	conn         HTTPClient
 	ClientID     string
@@ -30,9 +30,10 @@ type TwitchClient struct {
 	tokenType    string
 }
 
-// Returns a new Twitch Client. If clientID is "", it will not be appended on the request header.
+// NewTwitchClient returns a new Twitch Client. If clientID is "", it will not be appended on the request header.
 // A client credentials config is established which auto-refreshes OAuth2 access tokens
 // Currently ONLY uses Client Credentials flow. Not intended for user access tokens.
+// See NewTwitchClientUserAuth for user authentication.
 func NewTwitchClient(clientID string, clientSecret string) (*TwitchClient, error) {
 	if clientID == "" {
 		return nil, errors.New("A Client ID must be provided to create a twitch client")
@@ -59,7 +60,7 @@ func NewTwitchClient(clientID string, clientSecret string) (*TwitchClient, error
 	}, nil
 }
 
-// Creates a new helix API twitch client with a user token. This token may be obtained with NewUserAuth and TokenExchange, or an existing user token
+// NewTwitchClientUserAuth creates a new helix API twitch client with a user token. This token may be obtained with NewUserAuth and TokenExchange, or an existing user token
 // may be used instead. The OAuth2 config used to create the token must match. The user token will be automatically refreshed.
 func NewTwitchClientUserAuth(config *oauth2.Config, userToken *oauth2.Token) (*TwitchClient, error) {
 	return &TwitchClient{
@@ -72,7 +73,7 @@ func NewTwitchClientUserAuth(config *oauth2.Config, userToken *oauth2.Token) (*T
 
 // Creates a URL with path and the values in params appended onto it
 func buildURL(path string, params interface{}) (*url.URL, error) {
-	targetUrl, err := url.Parse(helixRootURL + path)
+	targetURL, err := url.Parse(helixRootURL + path)
 	if err != nil {
 		return nil, err
 	}
@@ -83,19 +84,19 @@ func buildURL(path string, params interface{}) (*url.URL, error) {
 		if err != nil {
 			return nil, err
 		}
-		targetUrl.RawQuery = qs.Encode()
+		targetURL.RawQuery = qs.Encode()
 	}
-	return targetUrl, nil
+	return targetURL, nil
 }
 
 // Create and send an HTTP request. Return the decoded JSON value of the HTTP body regardless of status code.
 func (client *TwitchClient) sendRequest(path string, params interface{}, result interface{}, requestType string) (*http.Response, error) {
-	targetUrl, err := buildURL(path, params)
+	targetURL, err := buildURL(path, params)
 	if err != nil {
 		return nil, err
 	}
 
-	request, err := http.NewRequest(requestType, targetUrl.String(), nil)
+	request, err := http.NewRequest(requestType, targetURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}

@@ -4,37 +4,38 @@ const (
 	getClipsPath = "/clips"
 )
 
-// Defines the options available for Get Users
+// GetClipsOpt defines the options available for Get Clips.
 type GetClipsOpt struct {
-	Id            string `url:"id,omitempty"`
-	BroadcasterId string `url:"broadcaster_id,omitempty"`
-	GameId        string `url:"game_id,omitempty"`
+	ID            string `url:"id,omitempty"`
+	BroadcasterID string `url:"broadcaster_id,omitempty"`
+	GameID        string `url:"game_id,omitempty"`
 }
 
+// GetClipsData represents metadata about a clip.
 type GetClipsData struct {
-	Id              string `json:"id,omitempty"`
-	Url             string `json:"url,omitempty"`
-	EmbedUrl        string `json:"embed_url,omitempty"`
-	BroadcasterId   string `json:"broadcaster_id,omitempty"`
+	ID              string `json:"id,omitempty"`
+	URL             string `json:"url,omitempty"`
+	EmbedURL        string `json:"embed_url,omitempty"`
+	BroadcasterID   string `json:"broadcaster_id,omitempty"`
 	BroadcasterName string `json:"braodcaster_name,omitempty"`
-	CreatorId       string `json:"creator_id,omitempty"`
+	CreatorID       string `json:"creator_id,omitempty"`
 	CreatorName     string `json:"creator_name,omitempty"`
-	VideoId         string `json:"video_id,omitempty"`
-	GameId          string `json:"game_id,omitempty"`
+	VideoID         string `json:"video_id,omitempty"`
+	GameID          string `json:"game_id,omitempty"`
 	Language        string `json:"language,omitempty"`
 	Title           string `json:"title,omitempty"`
 	ViewCount       int    `json:"view_count,omitempty"`
 	CreatedAt       string `json:"created_at,omitempty"`
-	ThumbnailUrl    string `json:"thyumbnail_url,omitempty"`
+	ThumbnailURL    string `json:"thumbnail_url,omitempty"`
 }
 
-// Response structure for a Get Users command
+// GetClipsResponse represents the response from a Get Clips command.
 type GetClipsResponse struct {
 	Data       []GetClipsData `json:"data,omitempty"`
 	Pagination PaginationData
 }
 
-// Get information by clip id, broadcaster id or game id
+// GetClips gets information by clip id, broadcaster id or game id.
 //
 // https://dev.twitch.tv/docs/api/reference/#get-clips
 func (client *TwitchClient) GetClips(opt *GetClipsOpt) (*GetClipsResponse, error) {

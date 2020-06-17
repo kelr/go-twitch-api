@@ -5,7 +5,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/kelr/go-twitch-api/helix"
+	"github.com/kelr/gundyr/helix"
 )
 
 // Provide your Client ID and secret. Set your redirect URI to one that you own.
