@@ -1,4 +1,4 @@
-// Provides a wrapper over the oauth2 library with additional helper functions.
+// Package auth provides a wrapper over the oauth2 library with additional helper functions.
 package auth
 
 import (

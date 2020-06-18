@@ -1,3 +1,4 @@
+// Package helix provides a HTTP client to communicate with the Twitch Helix API endpoints.
 package helix
 
 import (
