@@ -6,6 +6,7 @@ import (
 	"github.com/kelr/gundyr/auth"
 	"github.com/kelr/gundyr/helix"
 	"log"
+	"fmt"
 )
 
 // Provide your Client ID and secret. Set your redirect URI to one that you own.
@@ -18,24 +19,6 @@ const (
 	tokenFile      = "token.json"
 )
 
-// Load an OAuth2 token from a file and check for validity.
-// The token must have been created with a matching scope.
-func retrieveToken() *oauth2.Token {
-	token, err = auth.LoadTokenFile(config, tokenFile)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Verify that the cached token has not expired.
-	newToken := auth.VerifyToken(config, token)
-
-	// Update the token file.
-	if err := auth.FlushTokenFile(tokenFile, newToken); err != nil {
-		log.Fatal(err)
-	}
-}
-
 func main() {
 	scopes := []string{"user:read:email"}
 
@@ -44,10 +27,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// Create the API client. User token will be automatically refreshed.
+	
 	// See examples/auth_token.go for an example on creating a new token.
-	client, err := helix.NewClientUserAuth(config, retrieveToken())
+	token, err := auth.RetrieveTokenFile(config, tokenFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	// Create the API client. User token will be automatically refreshed.
+	client, err := helix.NewClientUserAuth(config, token)
 	if err != nil {
 		log.Fatal(err)
 	}

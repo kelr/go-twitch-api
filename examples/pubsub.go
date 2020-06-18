@@ -1,13 +1,14 @@
 package main
 
 import (
-	"flag"
 	"fmt"
+	"log"
 	"github.com/kelr/gundyr/auth"
 	"github.com/kelr/gundyr/pubsub"
-	"golang.org/x/oauth2"
 )
 
+// Provide your Client ID and secret. Set your redirect URI to one that you own.
+// The URI must match exactly with the one registered by your app on the Twitch Developers site
 const (
 	clientID     = ""
 	clientSecret = ""
@@ -15,37 +16,6 @@ const (
 	userID       = ""
 	tokenFile    = "token.json"
 )
-
-// Set scopes to request from the user
-var scopes = []string{"channel:read:redemptions", "channel:moderate", "whispers:read"}
-
-// Run with -a to generate a new user token
-var doAuth = flag.Bool("a", false, "Generate a URL for user token authentication")
-
-// Helper function to generate the auth code URL, generate a user credential token and flush it to a file.
-func authenticate(config *oauth2.Config) error {
-	// Get the URL to send to the user and the state code to protect against CSRF attacks.
-	url, state := auth.GetAuthCodeURL(config)
-	fmt.Println(url)
-	fmt.Println("Ensure that state recieved at URI is:", state)
-
-	// Enter the code received by the redirect URI. Ensure that the state value
-	// obtained at the redirect URI matches the previous state value.
-	var authCode string
-	if _, err := fmt.Scan(&authCode); err != nil {
-		fmt.Println(err)
-	}
-
-	// Obtain the user token through the code. This token can be reused as long as
-	// it has not expired, but the auth code cannot be reused.
-	token, err := auth.TokenExchange(config, authCode)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	auth.FlushTokenFile(tokenFile, token)
-	return nil
-}
 
 func handleChannelPoints(event *pubsub.ChannelPointsEvent) {
 	fmt.Println(event.Data.Redemption.Reward.Title)
@@ -60,40 +30,26 @@ func handleWhispers(event *pubsub.WhispersEvent) {
 }
 
 func main() {
-	flag.Parse()
+	scopes := []string{"channel:read:redemptions", "channel:moderate", "whispers:read"}
 
 	// Setup OAuth2 configuration
 	config, err := auth.NewUserAuth(clientID, clientSecret, redirectURI, &scopes)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
-	// Generate a new token if the -a flag was provided
-	if *doAuth {
-		authenticate(config)
-		return
-	}
-
-	// Load an OAuth2 token from a file
-	token, err := auth.LoadTokenFile(config, tokenFile)
+	// See examples/auth_token.go for an example on creating a new token.
+	token, err := auth.RetrieveTokenFile(config, tokenFile)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
-	// Verify that the cached token has not expired. Refresh if so.
-	newToken := auth.VerifyToken(config, token)
-	if newToken.AccessToken != token.AccessToken {
-		fmt.Println("Saved new token:", newToken.AccessToken)
-		auth.FlushTokenFile(tokenFile, newToken)
-	}
-	fmt.Println("Token loaded")
+	// Create a PubSub client and listen to the topics.
+	client := pubsub.NewClient(config, token)
 
-	client := pubsub.NewClient(config, newToken)
-	client.ListenChannelPoints(userId, handleChannelPoints)
-	client.ListenChatModActions(userId, handleModActions)
-	client.ListenWhispers(userId, handleWhispers)
+	client.ListenChannelPoints(userID, handleChannelPoints)
+	client.ListenChatModActions(userID, handleModActions)
+	client.ListenWhispers(userID, handleWhispers)
 	client.Connect()
 	select {}
 }

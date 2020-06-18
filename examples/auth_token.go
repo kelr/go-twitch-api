@@ -61,7 +61,7 @@ func main() {
 	if *doAuth {
 		token, err = generateNewToken(config)
 	} else {
-		token, err = auth.LoadTokenFile(config, tokenFile)
+		token, err = auth.LoadTokenFile(tokenFile)
 	}
 	if err != nil {
 		log.Fatal(err)

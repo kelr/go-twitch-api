@@ -55,6 +55,23 @@ func TokenExchange(config *oauth2.Config, authCode string) (*oauth2.Token, error
 	return token, nil
 }
 
+// RetrieveTokenFile is a helper function that calls LoadTokenFile, VerifyToken and FlushTokenFile.
+func RetrieveTokenFile(config *oauth2.Config, file string) (*oauth2.Token, error) {
+	token, err := LoadTokenFile(file)
+	if err != nil {
+		return nil, err
+	}
+
+	// Verify that the cached token has not expired.
+	newToken := VerifyToken(config, token)
+
+	// Update the token file.
+	if err := FlushTokenFile(file, newToken); err != nil {
+		return nil, err
+	}
+	return newToken, nil
+}
+
 // FlushTokenFile encodes a Token object into JSON and writes it to the file tokenFile
 func FlushTokenFile(tokenFile string, token *oauth2.Token) error {
 	f, err := os.OpenFile(tokenFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
@@ -66,7 +83,7 @@ func FlushTokenFile(tokenFile string, token *oauth2.Token) error {
 }
 
 // LoadTokenFile decodes a Token object from file tokenFile
-func LoadTokenFile(config *oauth2.Config, tokenFile string) (*oauth2.Token, error) {
+func LoadTokenFile(tokenFile string) (*oauth2.Token, error) {
 	f, err := os.OpenFile(tokenFile, os.O_RDWR, 0755)
 	if err != nil {
 		// Handle PathError specifically as it indicates the file does not exist
