@@ -14,7 +14,6 @@ func main() {
 	c, err := gundyr.NewHelix(clientID, clientSecret)
 	if err != nil {
 		log.Fatal(err)
-		return
 	}
 
 	userID, err := c.UserToId("kyrotobi")
