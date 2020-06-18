@@ -58,7 +58,7 @@ type WhispersRecipient struct {
 
 // ListenWhispers subscribes a handler function to the Whispers topic with the provided id.
 // The handler will be called with a populated WhispersEvent struct when the event is received.
-func (c *PubSubClient) ListenWhispers(id string, handler func(*WhispersEvent)) error {
+func (c *Client) ListenWhispers(id string, handler func(*WhispersEvent)) error {
 	if _, ok := c.whispersHandlers[id]; !ok {
 		c.whispersHandlers[id] = handler
 		if c.IsConnected() {

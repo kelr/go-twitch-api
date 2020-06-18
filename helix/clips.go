@@ -1,5 +1,9 @@
 package helix
 
+import (
+	"encoding/json"
+)
+
 const (
 	getClipsPath = "/clips"
 )
@@ -38,11 +42,15 @@ type GetClipsResponse struct {
 // GetClips gets information by clip id, broadcaster id or game id.
 //
 // https://dev.twitch.tv/docs/api/reference/#get-clips
-func (client *TwitchClient) GetClips(opt *GetClipsOpt) (*GetClipsResponse, error) {
+func (client *Client) GetClips(opt *GetClipsOpt) (*GetClipsResponse, error) {
 	data := new(GetClipsResponse)
-	_, err := client.sendRequest(getClipsPath, opt, data, "GET")
+	resp, err := client.getRequest(getClipsPath, opt)
 	if err != nil {
 		return nil, err
 	}
-	return data, err
+	err = json.Unmarshal(resp.Data, data)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }

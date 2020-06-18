@@ -8,7 +8,7 @@ import (
 
 // Tests that received data is empty for a bad request
 func TestGetUsersEmpty(t *testing.T) {
-	client := newMockTwitchClient("test-id", "test-secret", "client", http.StatusBadRequest, `{"error":"Bad Request","status":400,"message":"Must provide an ID, Login or OAuth Token"}`)
+	client := newMockClient("test-id", "test-secret", "client", http.StatusBadRequest, []byte(`{"error":"Bad Request","status":400,"message":"Must provide an ID, Login or OAuth Token"}`))
 
 	resp, err := client.GetUsers(&GetUsersOpt{
 		Login: "kyrotobi",
@@ -36,13 +36,13 @@ func TestGetUsers(t *testing.T) {
 				Description:     "hi im strimmer :)",
 				ProfileImageURL: "https://static-cdn.jtvnw.net/jtv_user_pictures/dallas-profile_image-1a2c906ee2c35f12-300x300.png",
 				OfflineImageURL: "https://static-cdn.jtvnw.net/jtv_user_pictures/dallas-profile_image-1a2c906ee2c35f12-300x300.png",
-				ViewCount:       "999999999",
+				ViewCount:       999999999,
 				Email:           "testemail@gmail.com",
 			},
 		},
 	}
 	testRespJSON, _ := json.Marshal(testResp)
-	client := newMockTwitchClient("test-id", "test-secret", "client", http.StatusOK, string(testRespJSON))
+	client := newMockClient("test-id", "test-secret", "client", http.StatusOK, testRespJSON)
 
 	// Doesn't matter what we put here since the response is predetermined
 	resp, err := client.GetUsers(&GetUsersOpt{
@@ -80,7 +80,7 @@ func TestGetUsers(t *testing.T) {
 		t.Errorf("got %s, expected %s", resp.Data[0].OfflineImageURL, testResp.Data[0].OfflineImageURL)
 	}
 	if resp.Data[0].ViewCount != testResp.Data[0].ViewCount {
-		t.Errorf("got %s, expected %s", resp.Data[0].ViewCount, testResp.Data[0].ViewCount)
+		t.Errorf("got %d, expected %d", resp.Data[0].ViewCount, testResp.Data[0].ViewCount)
 	}
 	if resp.Data[0].Email != testResp.Data[0].Email {
 		t.Errorf("got %s, expected %s", resp.Data[0].Email, testResp.Data[0].Email)

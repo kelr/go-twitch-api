@@ -1,11 +1,12 @@
-// An example to obtain a user authentication token for user's email.
-// Uses OAuth2 Authorization Code Flow
+// An example to obtain a user's email with a user access token.
 package main
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/kelr/gundyr/auth"
 	"github.com/kelr/gundyr/helix"
+	"log"
 )
 
 // Provide your Client ID and secret. Set your redirect URI to one that you own.
@@ -15,55 +16,34 @@ const (
 	clientSecret   = ""
 	redirectURI    = "http://localhost"
 	targetUsername = ""
+	tokenFile      = "token.json"
 )
 
-// Set scopes to request from the user
-var scopes = []string{"user:read:email"}
-
 func main() {
+	scopes := []string{"user:read:email"}
+
 	// Setup OAuth2 configuration
-	config, err := helix.NewUserAuth(clientID, clientSecret, redirectURI, &scopes)
+	config, err := auth.NewUserAuth(clientID, clientSecret, redirectURI, &scopes)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
-	// Get the URL to send to the user and the state code to protect against CSRF attacks.
-	url, state := helix.GetAuthCodeURL(config)
-	fmt.Println(url)
-	fmt.Println("Ensure that state recieved at URI is:", state)
-
-	// Enter the code received by the redirect URI. Ensure that the state value
-	// obtained at the redirect URI matches the previous state value.
-	var authCode string
-	if _, err := fmt.Scan(&authCode); err != nil {
-		fmt.Println(err)
-	}
-
-	// Obtain the user token through the code. This token can be reused as long as
-	// it has not expired, but the auth code cannot be reused.
-	token, err := helix.TokenExchange(config, authCode)
+	// See examples/auth_token.go for an example on creating a new token.
+	token, err := auth.RetrieveTokenFile(config, tokenFile)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
 	// Create the API client. User token will be automatically refreshed.
-	client, err := helix.NewTwitchClientUserAuth(config, token)
+	client, err := helix.NewClientUserAuth(config, token)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
-	// Get user information, will include email for the user you have a token from
-	opt := &helix.GetUsersOpt{
-		Login: targetUsername,
-	}
-
-	response, err := client.GetUsers(opt)
+	// Get user information, will include email for the user you have a token from.
+	response, err := client.GetUsers(&helix.GetUsersOpt{Login: []string{targetUsername}})
 	if err != nil {
-		fmt.Println("Error:", err)
-		return
+		log.Fatal(err)
 	}
 
 	// Pretty print
