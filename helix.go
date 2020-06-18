@@ -1,4 +1,4 @@
-// Provides easier to use wrapper functions for the Helix API client
+// Package gundyr provides an interface to access the Helix Twitch API and Twich PubSub.
 package gundyr
 
 import (
@@ -12,7 +12,7 @@ type helixClient interface {
 	GetUsersFollows(opt *helix.GetUsersFollowsOpt) (*helix.GetUsersFollowsResponse, error)
 }
 
-// Helix is a wrapper over a HelixClient.
+// Helix is a wrapper over a HelixClient. See https://godoc.org/github.com/kelr/gundyr/helix for the underlying HelixClient.
 type Helix struct {
 	client helixClient
 }
