@@ -12,6 +12,10 @@ Note: This is a work in progress and a project to help me learn Go :). May not p
 $ go get github.com/kelr/gundyr
 ```
 
+## Docs
+
+Documentation can be found at [godoc](https://godoc.org/github.com/kelr/gundyr). Examples can be found in the [examples](https://github.com/kelr/gundyr/tree/master/examples) directory.
+
 ## Usage
 Example to convert a Twitch login name to account ID
 

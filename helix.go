@@ -46,6 +46,8 @@ func (c *Helix) IDToUser(userID string) (string, error) {
 }
 
 // IDsToUser converts multiple user ID strings to multiple username strings.
+// Will accept a maximum of 100 IDs. Requests for more than 100 IDs should call this function 
+// in chunks.
 func (c *Helix) IDsToUser(userIDs []string) ([]string, error) {
 	if len(userIDs) > 100 {
 		return nil, errors.New("Helix: Cannot request more than 100 user IDs per call.")
