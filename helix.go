@@ -6,8 +6,15 @@ import (
 	"github.com/kelr/gundyr/helix"
 )
 
+// Interface to allow for mocking a Helix Client.
+type helixClient interface {
+	GetUsers(opt *helix.GetUsersOpt) (*helix.GetUsersResponse, error)
+	GetUsersFollows(opt *helix.GetUsersFollowsOpt) (*helix.GetUsersFollowsResponse, error)
+}
+
+// Helix is a wrapper over a HelixClient.
 type Helix struct {
-	client *helix.Client
+	client helixClient
 }
 
 // NewHelix returns returns a client credentials Helix API client wrapper
@@ -21,7 +28,7 @@ func NewHelix(clientID string, clientSecret string) (*Helix, error) {
 	}, nil
 }
 
-// IdToUser converts a user ID string to a username string.
+// IDToUser converts a user ID string to a username string.
 func (c *Helix) IDToUser(userID string) (string, error) {
 	opt := &helix.GetUsersOpt{
 		ID: []string{userID},
@@ -38,7 +45,7 @@ func (c *Helix) IDToUser(userID string) (string, error) {
 	return response.Data[0].Login, nil
 }
 
-// IdToUser converts multiple user ID strings to multiple username strings.
+// IDsToUser converts multiple user ID strings to multiple username strings.
 func (c *Helix) IDsToUser(userIDs []string) ([]string, error) {
 	if len(userIDs) > 100 {
 		return nil, errors.New("Helix: Cannot request more than 100 user IDs per call.")
@@ -51,7 +58,7 @@ func (c *Helix) IDsToUser(userIDs []string) ([]string, error) {
 
 	response, err := c.client.GetUsers(opt)
 	if err != nil {
-		return nil, err
+		return followers, err
 	}
 
 	for _, d := range response.Data {
@@ -60,7 +67,7 @@ func (c *Helix) IDsToUser(userIDs []string) ([]string, error) {
 	return followers, nil
 }
 
-// UserToId converts a username string to a user ID string.
+// UserToID converts a username string to a user ID string.
 func (c *Helix) UserToID(username string) (string, error) {
 	opt := &helix.GetUsersOpt{
 		Login: []string{username},
@@ -102,21 +109,23 @@ func (c *Helix) GetFollowers(userID string) ([]string, error) {
 	opt := &helix.GetUsersFollowsOpt{
 		ToID: userID,
 	}
+
 	response, err := c.client.GetUsersFollows(opt)
 	if err != nil {
 		return followers, err
 	}
 
-	for len(response.Data) != 0 {
+	// Drain all the followers by checking each page until there are none left.
+	for len(response.Data) > 0 {
 		for _, d := range response.Data {
 			followers = append(followers, d.FromID)
 		}
 
-		// Request next page to ensure all the users are found.
 		opt = &helix.GetUsersFollowsOpt{
 			ToID: userID,
 			After: response.Pagination.Cursor,
 		}
+
 		response, err = c.client.GetUsersFollows(opt)
 		if err != nil {
 			return followers, err

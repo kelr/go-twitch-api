@@ -22,7 +22,7 @@ func main() {
 	}
 	log.Println(userID)
 
-	userName, err := c.IDToUser("31903323")
+	userName, err := c.IDToUser(userID)
 	if err != nil {
 		log.Fatal(err)
 	}

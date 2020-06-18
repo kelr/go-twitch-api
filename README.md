@@ -35,11 +35,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	userId, err := c.UserToId("kyrotobi")
+	userID, err := c.UserToID("kyrotobi")
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println(userId)
+	log.Println(userID)
 }
 ```
 
