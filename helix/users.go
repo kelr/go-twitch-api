@@ -19,8 +19,8 @@ type PaginationData struct {
 
 // GetUsersOpt defines the options available for Get Users.
 type GetUsersOpt struct {
-	ID    string `url:"id,omitempty"`
-	Login string `url:"login,omitempty"`
+	ID    []string `url:"id,omitempty"`
+	Login []string `url:"login,omitempty"`
 }
 
 // GetUsersData represents information about a user.

@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	clientID     = ""
-	clientSecret = ""
+	clientID     = "v1jznhyjrk89g65v6if0jpymwk7s4e"
+	clientSecret = "qlf6iyrg33xsxcx0l5khkgqfecf7a0"
 )
 
 func main() {
@@ -16,13 +16,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	userID, err := c.UserToId("kyrotobi")
+	userID, err := c.UserToID("kyrotobi")
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println(userID)
 
-	userName, err := c.IdToUser("31903323")
+	userName, err := c.IDToUser("31903323")
 	if err != nil {
 		log.Fatal(err)
 	}

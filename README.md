@@ -6,9 +6,7 @@ It handles both app access as well as user access tokens. All tokens used are au
 
 Note: This is a work in progress and a project to help me learn Go :). May not provide full functionality.
 
-## Installation
-
-Run:
+## Install
 
 ```bash
 $ go get github.com/kelr/gundyr
