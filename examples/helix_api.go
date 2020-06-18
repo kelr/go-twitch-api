@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	clientID     = "v1jznhyjrk89g65v6if0jpymwk7s4e"
-	clientSecret = "qlf6iyrg33xsxcx0l5khkgqfecf7a0"
+	clientID     = ""
+	clientSecret = ""
 )
 
 func main() {
