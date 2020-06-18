@@ -1,4 +1,4 @@
-// Provides easier to use wrapper functions for the Helix API client
+// Package gundyr provides an interface to access the Helix Twitch API and Twich PubSub.
 package gundyr
 
 import (
@@ -12,7 +12,7 @@ type helixClient interface {
 	GetUsersFollows(opt *helix.GetUsersFollowsOpt) (*helix.GetUsersFollowsResponse, error)
 }
 
-// Helix is a wrapper over a HelixClient.
+// Helix is a wrapper over a HelixClient. See https://godoc.org/github.com/kelr/gundyr/helix for the underlying HelixClient.
 type Helix struct {
 	client helixClient
 }
@@ -46,6 +46,8 @@ func (c *Helix) IDToUser(userID string) (string, error) {
 }
 
 // IDsToUser converts multiple user ID strings to multiple username strings.
+// Will accept a maximum of 100 IDs. Requests for more than 100 IDs should call this function 
+// in chunks.
 func (c *Helix) IDsToUser(userIDs []string) ([]string, error) {
 	if len(userIDs) > 100 {
 		return nil, errors.New("Helix: Cannot request more than 100 user IDs per call.")
