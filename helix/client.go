@@ -7,9 +7,9 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 	"golang.org/x/oauth2/twitch"
+	"io/ioutil"
 	"net/http"
 	"net/url"
-	"io/ioutil"
 )
 
 const (
@@ -24,8 +24,8 @@ type HTTPClient interface {
 // Response represents an HTTP response with un-decoded body bytes.
 type Response struct {
 	Status int
-	Header  http.Header
-	Data []byte
+	Header http.Header
+	Data   []byte
 }
 
 // Client handles communication with the Twitch Helix API.

@@ -23,16 +23,16 @@ type GetStreamsOpt struct {
 // GetStreamsResponse represents a response from a Get Streams command.
 type GetStreamsResponse struct {
 	Data []struct {
-		GameID       string `json:"game_id,omitempty"`
-		ID           string `json:"id,omitempty"`
-		Language     string `json:"language,omitempty"`
-		StartedAt    string `json:"started_at,omitempty"`
-		ThumbnailURL string `json:"thumbnail_url,omitempty"`
-		Title        string `json:"title,omitempty"`
-		Type         string `json:"type,omitempty"`
-		UserID       string `json:"user_id,omitempty"`
-		Username     string `json:"user_name,omitempty"`
-		ViewerCount  int    `json:"viewer_count,omitempty"`
+		GameID       string   `json:"game_id,omitempty"`
+		ID           string   `json:"id,omitempty"`
+		Language     string   `json:"language,omitempty"`
+		StartedAt    string   `json:"started_at,omitempty"`
+		ThumbnailURL string   `json:"thumbnail_url,omitempty"`
+		Title        string   `json:"title,omitempty"`
+		Type         string   `json:"type,omitempty"`
+		UserID       string   `json:"user_id,omitempty"`
+		Username     string   `json:"user_name,omitempty"`
+		ViewerCount  int      `json:"viewer_count,omitempty"`
 		TagIDs       []string `json:"tag_ids,omitempty"`
 	} `json:"data,omitempty"`
 
