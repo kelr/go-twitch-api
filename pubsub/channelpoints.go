@@ -75,7 +75,7 @@ type RedemptionMaxPerStream struct {
 
 // ListenChannelPoints subscribes a handler function to the Channel Points topic with the provided id.
 // The handler will be called with a populated ChannelPointsEvent struct when the event is received.
-func (c *PubSubClient) ListenChannelPoints(id string, handler func(*ChannelPointsEvent)) error {
+func (c *Client) ListenChannelPoints(id string, handler func(*ChannelPointsEvent)) error {
 	if _, ok := c.channelPointHandlers[id]; !ok {
 		c.channelPointHandlers[id] = handler
 		if c.IsConnected() {

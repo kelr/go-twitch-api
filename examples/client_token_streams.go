@@ -1,11 +1,11 @@
-// An example to create a client with a client credentials token.
-// Uses the token to get info about a stream.
+// An example to create a client with the client credentials OAuth flow.
+// Gets info about streams.
 package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/kelr/gundyr/helix"
+	"log"
 )
 
 // Provide your Client ID and secret here.
@@ -16,27 +16,18 @@ const (
 )
 
 func main() {
-
-	client, err := helix.NewTwitchClient(clientID, clientSecret)
+	client, err := helix.NewClient(clientID, clientSecret)
 	if err != nil {
-		fmt.Println("Error: ", err)
-		return
+		log.Fatal(err)
 	}
 
-	// Set options, English and only return the top 2 streams
-	opt := &helix.GetStreamsOpt{
-		Language: "en",
-		First:    2,
-	}
-
-	// Returns a GetStreamsResponse object
-	response, err := client.GetStreams(opt)
+	// Get the top 2 english streams. Response is a GetStreamsResponse object.
+	response, err := client.GetStreams(&helix.GetStreamsOpt{Language: "en", First: 2})
 	if err != nil {
-		fmt.Println("Error:", err)
-		return
+		log.Fatal(err)
 	}
 
 	// Pretty print
 	obj, _ := json.MarshalIndent(response, "", "  ")
-	fmt.Println(string(obj))
+	log.Println(string(obj))
 }
