@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/kelr/gundyr"
 	"log"
+
+	"github.com/kelr/gundyr"
 )
 
 const (
@@ -11,7 +12,12 @@ const (
 )
 
 func main() {
-	c, err := gundyr.NewHelix(clientID, clientSecret)
+	cfg := &gundyr.HelixConfig{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+	}
+
+	c, err := gundyr.NewHelix(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}

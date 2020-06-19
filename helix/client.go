@@ -31,51 +31,74 @@ type Response struct {
 
 // Client handles communication with the Twitch Helix API.
 type Client struct {
-	conn         HTTPClient
-	ClientID     string
-	ClientSecret string
-	tokenType    string
+	conn      HTTPClient
+	config    *Config
+	tokenType string
 }
 
-// NewClient returns a new Twitch Client. If clientID is "", it will not be appended on the request header.
-// A client credentials config is established which auto-refreshes OAuth2 access tokens
-// Currently ONLY uses Client Credentials flow. Not intended for user access tokens.
-// See NewClientUserAuth for user authentication.
-func NewClient(clientID string, clientSecret string) (*Client, error) {
-	if clientID == "" {
+// Config represents configuration options available to a Client.
+type Config struct {
+	ClientID     string
+	ClientSecret string
+	Scopes       []string
+	RedirectURI  string
+	Token        *oauth2.Token
+}
+
+// NewClient returns a new Helix Client depending on options provided by cfg.
+// If the Token field of the config is nil, the client will attempt create an app access token
+// using the 2-legged OAuth2 client credentials flow.
+// If a Token is provided, the client will attempt to use the token as a user access token.
+func NewClient(cfg *Config) (*Client, error) {
+	if cfg.ClientID == "" {
 		return nil, errors.New("A Client ID must be provided to create a twitch client")
 	}
-	if clientSecret == "" {
+
+	if cfg.ClientSecret == "" {
 		return nil, errors.New("A Client secret must be provided to create a twitch client")
 	}
-	config := &clientcredentials.Config{
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
+
+	c := new(Client)
+	c.config = cfg
+
+	var err error
+	if cfg.Token == nil {
+		c.conn, err = newAppAccessClient(cfg)
+		c.tokenType = "app"
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		c.conn = newUserAccessClient(cfg)
+		c.tokenType = "user"
+	}
+	return c, nil
+}
+
+func newAppAccessClient(cfg *Config) (*http.Client, error) {
+	c := &clientcredentials.Config{
+		ClientID:     cfg.ClientID,
+		ClientSecret: cfg.ClientSecret,
 		TokenURL:     twitch.Endpoint.TokenURL,
 	}
 
-	_, err := config.Token(context.Background())
+	_, err := c.Token(context.Background())
 	if err != nil {
 		return nil, err
 	}
 
-	return &Client{
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-		conn:         config.Client(context.Background()),
-		tokenType:    "client",
-	}, nil
+	return c.Client(context.Background()), err
 }
 
-// NewClientUserAuth creates a new helix API twitch client with a user token. This token may be obtained with NewUserAuth and TokenExchange, or an existing user token
-// may be used instead. The OAuth2 config used to create the token must match. The user token will be automatically refreshed.
-func NewClientUserAuth(config *oauth2.Config, userToken *oauth2.Token) (*Client, error) {
-	return &Client{
-		ClientID:     config.ClientID,
-		ClientSecret: config.ClientSecret,
-		conn:         config.Client(context.Background(), userToken),
-		tokenType:    "user",
-	}, nil
+func newUserAccessClient(cfg *Config) *http.Client {
+	c := &oauth2.Config{
+		ClientID:     cfg.ClientID,
+		ClientSecret: cfg.ClientSecret,
+		Scopes:       cfg.Scopes,
+		Endpoint:     twitch.Endpoint,
+		RedirectURL:  cfg.RedirectURI,
+	}
+	return c.Client(context.Background(), cfg.Token)
 }
 
 // Creates a URL with path and the values in params appended onto it
@@ -94,6 +117,15 @@ func buildURL(path string, params interface{}) (string, error) {
 		targetURL.RawQuery = qs.Encode()
 	}
 	return targetURL.String(), nil
+}
+
+func (c *Client) hasScope(scope string) bool {
+	for _, s := range c.config.Scopes {
+		if s == scope {
+			return true
+		}
+	}
+	return false
 }
 
 // Wrapper for a HTTP GET request
@@ -124,7 +156,7 @@ func (c *Client) sendRequest(path string, params interface{}, requestType string
 	}
 
 	// A client ID is required. The auth token will be added automatically.
-	request.Header.Set("Client-ID", c.ClientID)
+	request.Header.Set("Client-ID", c.config.ClientID)
 
 	// Send the request
 	resp, err := c.conn.Do(request)

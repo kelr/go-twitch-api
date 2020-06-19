@@ -4,8 +4,9 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/kelr/gundyr/helix"
 	"log"
+
+	"github.com/kelr/gundyr/helix"
 )
 
 // Provide your Client ID and secret here.
@@ -16,7 +17,12 @@ const (
 )
 
 func main() {
-	client, err := helix.NewClient(clientID, clientSecret)
+	cfg := &helix.Config{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+	}
+
+	client, err := helix.NewClient(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}

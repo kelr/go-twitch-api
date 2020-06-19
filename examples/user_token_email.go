@@ -2,26 +2,23 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"github.com/kelr/gundyr/auth"
-	"github.com/kelr/gundyr/helix"
 	"log"
+
+	"github.com/kelr/gundyr"
+	"github.com/kelr/gundyr/auth"
 )
 
 // Provide your Client ID and secret. Set your redirect URI to one that you own.
 // The URI must match exactly with the one registered by your app on the Twitch Developers site
 const (
-	clientID       = ""
-	clientSecret   = ""
-	redirectURI    = "http://localhost"
-	targetUsername = ""
-	tokenFile      = "token.json"
+	clientID     = ""
+	clientSecret = ""
+	redirectURI  = "http://localhost"
+	tokenFile    = "token.json"
 )
 
 func main() {
-	scopes := []string{"user:read:email"}
-
+	var scopes = []string{"user:read:email"}
 	// Setup OAuth2 configuration
 	config, err := auth.NewUserAuth(clientID, clientSecret, redirectURI, &scopes)
 	if err != nil {
@@ -35,18 +32,21 @@ func main() {
 	}
 
 	// Create the API client. User token will be automatically refreshed.
-	client, err := helix.NewClientUserAuth(config, token)
+	cfg := &gundyr.HelixConfig{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		Scopes:       scopes,
+		RedirectURI:  redirectURI,
+		Token:        token,
+	}
+	c, err := gundyr.NewHelix(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// Get user information, will include email for the user you have a token from.
-	response, err := client.GetUsers(&helix.GetUsersOpt{Login: []string{targetUsername}})
+	email, err := c.GetUserEmail("your-username")
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// Pretty print
-	obj, _ := json.MarshalIndent(response, "", "  ")
-	fmt.Println(string(obj))
+	log.Println(email)
 }

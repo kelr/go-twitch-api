@@ -2,8 +2,8 @@ package helix
 
 import (
 	"encoding/json"
-	"time"
 	"errors"
+	"time"
 )
 
 const (
@@ -122,6 +122,10 @@ func (client *Client) UpdateUser(opt *UpdateUserOpt) (*GetUsersResponse, error) 
 	if client.tokenType != "user" {
 		return nil, errors.New("Helix: Update User endpoint requires a user token for authentication.")
 	}
+	if !client.hasScope("user:edit") {
+		return nil, errors.New("Helix: Missing required scope for Update User- user:edit")
+	}
+
 	data := new(GetUsersResponse)
 
 	resp, err := client.putRequest(getUsersPath, opt)

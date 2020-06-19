@@ -19,7 +19,7 @@ const (
 )
 
 // Set scopes to request from the user
-var scopes = []string{"channel:read:redemptions"}
+var scopes = []string{"channel:read:redemptions", "user:read:email"}
 
 // Run with -a to generate a new user token
 var doAuth = flag.Bool("a", false, "Generate a URL for user token authentication")

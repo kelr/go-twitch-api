@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/kelr/gundyr/auth"
 	"github.com/kelr/gundyr/pubsub"
-	"log"
 )
 
 // Provide your Client ID and secret. Set your redirect URI to one that you own.
