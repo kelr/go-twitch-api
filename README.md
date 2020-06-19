@@ -1,4 +1,6 @@
-# gundyr
+# gundyr 
+
+[![GoDoc](https://godoc.org/github.com/kelr/gundyr?status.png)](https://godoc.org/github.com/kelr/gundyr) [![Go Report Card](https://goreportcard.com/badge/github.com/kelr/gundyr)](https://goreportcard.com/report/github.com/kelr/gundyr)
 
 Gundyr provides an easy to use interface to the [Helix Twitch API](https://dev.twitch.tv/docs/api/reference) and [Twitch PubSub](https://dev.twitch.tv/docs/pubsub).
 

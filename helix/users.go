@@ -1,8 +1,9 @@
 package helix
 
 import (
-	"time"
 	"encoding/json"
+	"time"
+	"errors"
 )
 
 const (
@@ -33,7 +34,7 @@ type GetUsersData struct {
 	Description     string `json:"description,omitempty"`
 	ProfileImageURL string `json:"profile_image_url,omitempty"`
 	OfflineImageURL string `json:"offline_image_url,omitempty"`
-	ViewCount       int `json:"view_count,omitempty"`
+	ViewCount       int    `json:"view_count,omitempty"`
 	Email           string `json:"email,omitempty"`
 }
 
@@ -59,7 +60,7 @@ func (client *Client) GetUsers(opt *GetUsersOpt) (*GetUsersResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return data, nil
 }
 
@@ -103,7 +104,7 @@ func (client *Client) GetUsersFollows(opt *GetUsersFollowsOpt) (*GetUsersFollows
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return data, nil
 }
 
@@ -118,6 +119,9 @@ type UpdateUserOpt struct {
 //
 // https://dev.twitch.tv/docs/api/reference#update-user
 func (client *Client) UpdateUser(opt *UpdateUserOpt) (*GetUsersResponse, error) {
+	if client.tokenType != "user" {
+		return nil, errors.New("Helix: Update User endpoint requires a user token for authentication.")
+	}
 	data := new(GetUsersResponse)
 
 	resp, err := client.putRequest(getUsersPath, opt)
@@ -152,6 +156,9 @@ type GetUserExtensionsResponse struct {
 //
 // https://dev.twitch.tv/docs/api/reference#get-users-follows
 func (client *Client) GetUserExtensions() (*GetUserExtensionsResponse, error) {
+	if client.tokenType != "user" {
+		return nil, errors.New("Helix: Get User Extensions endpoint requires a user token for authentication.")
+	}
 	data := new(GetUserExtensionsResponse)
 
 	resp, err := client.getRequest(getUsersExtensionsPath, nil)

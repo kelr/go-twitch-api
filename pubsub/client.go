@@ -1,3 +1,4 @@
+// Package pubsub provides a client used to subscribe to updates from the Twitch PubSub endpoints.
 package pubsub
 
 import (

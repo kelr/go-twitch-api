@@ -1,4 +1,4 @@
-// Provides a wrapper over the oauth2 library with additional helper functions.
+// Package auth provides a wrapper over the oauth2 library with additional helper functions.
 package auth
 
 import (
@@ -39,7 +39,7 @@ func NewUserAuth(clientID string, clientSecret string, redirectURI string, scope
 	return config, nil
 }
 
-// GetAuthCodeURL returns a URL to send to the end user for them to access as well as the state string embedded into the URL. Ensure that this state string matches the value recieved at the redirect URI.
+// GetAuthCodeURL returns a URL to send to the end user for them to access as well as the state string embedded into the URL. Ensure that this state string matches the value received at the redirect URI.
 func GetAuthCodeURL(config *oauth2.Config) (string, string) {
 	state, _ := generateState()
 	return config.AuthCodeURL(state, oauth2.AccessTypeOffline), state

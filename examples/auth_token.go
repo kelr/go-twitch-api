@@ -29,7 +29,7 @@ func generateNewToken(config *oauth2.Config) (*oauth2.Token, error) {
 	// Get the URL to send to the user and the state code to protect against CSRF attacks.
 	url, state := auth.GetAuthCodeURL(config)
 	fmt.Println(url)
-	fmt.Println("Ensure that state recieved at URI is:", state)
+	fmt.Println("Ensure that state received at URI is:", state)
 
 	// Enter the code received by the redirect URI. Ensure that the state value
 	// obtained at the redirect URI matches the previous state value.
