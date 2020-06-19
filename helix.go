@@ -3,6 +3,7 @@ package gundyr
 
 import (
 	"errors"
+	"golang.org/x/oauth2"
 	"github.com/kelr/gundyr/helix"
 )
 
@@ -12,14 +13,24 @@ type helixClient interface {
 	GetUsersFollows(opt *helix.GetUsersFollowsOpt) (*helix.GetUsersFollowsResponse, error)
 }
 
+// Config represents configuration options available to a Client.
+type HelixConfig struct {
+	ClientID string
+	ClientSecret string
+	Scopes []string
+	RedirectURI string
+	Token *oauth2.Token
+}
+
 // Helix is a wrapper over a HelixClient. See https://godoc.org/github.com/kelr/gundyr/helix for the underlying HelixClient.
 type Helix struct {
 	client helixClient
 }
 
 // NewHelix returns returns a client credentials Helix API client wrapper
-func NewHelix(clientID string, clientSecret string) (*Helix, error) {
-	client, err := helix.NewClient(clientID, clientSecret)
+func NewHelix(cfg *HelixConfig) (*Helix, error) {
+	c := helix.Config(*cfg)
+	client, err := helix.NewClient(&c)
 	if err != nil {
 		return nil, err
 	}
@@ -102,6 +113,25 @@ func (c *Helix) ViewCount(userID string) (int, error) {
 		return 0, errors.New("ID: " + userID + " not found")
 	}
 	return response.Data[0].ViewCount, nil
+}
+
+// GetUserEmail returns the e-mail address of the user by username.
+// The user access token must have scope user:read:email for the username provided.
+func (c *Helix) GetUserEmail(username string) (string, error) {
+	opt := &helix.GetUsersOpt{
+		Login: []string{username},
+	}
+
+	response, err := c.client.GetUsers(opt)
+	if err != nil {
+		return "", err
+	}
+
+	if len(response.Data) == 0 {
+		return "", errors.New("User: " + username + " not found")
+	}
+
+	return response.Data[0].Email, nil
 }
 
 // GetFollowers returns userIDs for all the users following the provided userID.
