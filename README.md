@@ -6,7 +6,8 @@ Gundyr provides an easy to use interface to the [Helix Twitch API](https://dev.t
 
 It handles both app access as well as user access tokens. All tokens used are automatically refreshed.
 
-Note: This is a work in progress and a project to help me learn Go :). May not provide full functionality.
+
+This is a work in progress and not all Helix or PubSub endpoints are supported yet.
 
 ## Install
 

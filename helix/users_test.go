@@ -4,14 +4,17 @@ import (
 	"encoding/json"
 	"net/http"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 // Tests that received data is empty for a bad request
 func TestGetUsersEmpty(t *testing.T) {
-	client := newMockClient("test-id", "test-secret", "client", http.StatusBadRequest, []byte(`{"error":"Bad Request","status":400,"message":"Must provide an ID, Login or OAuth Token"}`))
+	cfg := new(Config)
+	client := newMockClient(cfg, "client", http.StatusBadRequest, []byte(`{"error":"Bad Request","status":400,"message":"Must provide an ID, Login or OAuth Token"}`))
 
 	resp, err := client.GetUsers(&GetUsersOpt{
-		Login: "kyrotobi",
+		Login: []string{"kyrotobi"},
 	})
 
 	if err != nil {
@@ -23,7 +26,7 @@ func TestGetUsersEmpty(t *testing.T) {
 	}
 }
 
-// Test that GetUsers decodes the dummy JSON from the mocked HTTPClient correctly
+// Test that GetUsers decodes the JSON from the internal HTTPClient correctly
 func TestGetUsers(t *testing.T) {
 	testResp := &GetUsersResponse{
 		Data: []GetUsersData{
@@ -42,11 +45,11 @@ func TestGetUsers(t *testing.T) {
 		},
 	}
 	testRespJSON, _ := json.Marshal(testResp)
-	client := newMockClient("test-id", "test-secret", "client", http.StatusOK, testRespJSON)
+	client := newMockClient(new(Config), "app", http.StatusOK, testRespJSON)
 
-	// Doesn't matter what we put here since the response is predetermined
+	// Doesn't matter what we put here.
 	resp, err := client.GetUsers(&GetUsersOpt{
-		Login: "dallas",
+		Login: []string{"dallas"},
 	})
 
 	if err != nil {
@@ -55,34 +58,7 @@ func TestGetUsers(t *testing.T) {
 	if len(resp.Data) != 1 {
 		t.Error("expected single data value response")
 	}
-	if resp.Data[0].Login != testResp.Data[0].Login {
-		t.Errorf("got %s, expected %s", resp.Data[0].Login, testResp.Data[0].Login)
-	}
-	if resp.Data[0].ID != testResp.Data[0].ID {
-		t.Errorf("got %s, expected %s", resp.Data[0].ID, testResp.Data[0].ID)
-	}
-	if resp.Data[0].DisplayName != testResp.Data[0].DisplayName {
-		t.Errorf("got %s, expected %s", resp.Data[0].DisplayName, testResp.Data[0].DisplayName)
-	}
-	if resp.Data[0].Type != testResp.Data[0].Type {
-		t.Errorf("got %s, expected %s", resp.Data[0].Type, testResp.Data[0].Type)
-	}
-	if resp.Data[0].BroadcasterType != testResp.Data[0].BroadcasterType {
-		t.Errorf("got %s, expected %s", resp.Data[0].BroadcasterType, testResp.Data[0].BroadcasterType)
-	}
-	if resp.Data[0].Description != testResp.Data[0].Description {
-		t.Errorf("got %s, expected %s", resp.Data[0].Description, testResp.Data[0].Description)
-	}
-	if resp.Data[0].ProfileImageURL != testResp.Data[0].ProfileImageURL {
-		t.Errorf("got %s, expected %s", resp.Data[0].ProfileImageURL, testResp.Data[0].ProfileImageURL)
-	}
-	if resp.Data[0].OfflineImageURL != testResp.Data[0].OfflineImageURL {
-		t.Errorf("got %s, expected %s", resp.Data[0].OfflineImageURL, testResp.Data[0].OfflineImageURL)
-	}
-	if resp.Data[0].ViewCount != testResp.Data[0].ViewCount {
-		t.Errorf("got %d, expected %d", resp.Data[0].ViewCount, testResp.Data[0].ViewCount)
-	}
-	if resp.Data[0].Email != testResp.Data[0].Email {
-		t.Errorf("got %s, expected %s", resp.Data[0].Email, testResp.Data[0].Email)
+	if !cmp.Equal(*testResp, *resp) {
+		t.Error("decoded struct does not match input struct")
 	}
 }

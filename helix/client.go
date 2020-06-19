@@ -130,21 +130,33 @@ func (c *Client) hasScope(scope string) bool {
 
 // Wrapper for a HTTP GET request
 func (c *Client) getRequest(path string, params interface{}) (*Response, error) {
-	return c.sendRequest(path, params, http.MethodGet)
+	request, err := c.buildRequest(path, params, http.MethodGet)
+	if err != nil {
+		return nil, err
+	}
+	return c.sendRequest(request)
 }
 
 // Wrapper for a HTTP PUT request
 func (c *Client) putRequest(path string, params interface{}) (*Response, error) {
-	return c.sendRequest(path, params, http.MethodPut)
+	request, err := c.buildRequest(path, params, http.MethodPut)
+	if err != nil {
+		return nil, err
+	}
+	return c.sendRequest(request)
 }
 
 // Wrapper for a HTTP POST request
 func (c *Client) postRequest(path string, params interface{}) (*Response, error) {
-	return c.sendRequest(path, params, http.MethodPost)
+	request, err := c.buildRequest(path, params, http.MethodPost)
+	if err != nil {
+		return nil, err
+	}
+	return c.sendRequest(request)
 }
 
-// Create and send an HTTP request. Return the decoded JSON value of the HTTP body regardless of status code.
-func (c *Client) sendRequest(path string, params interface{}, requestType string) (*Response, error) {
+// Create an HTTP request.
+func (c *Client) buildRequest(path string, params interface{}, requestType string) (*http.Request, error) {
 	targetURL, err := buildURL(path, params)
 	if err != nil {
 		return nil, err
@@ -157,8 +169,11 @@ func (c *Client) sendRequest(path string, params interface{}, requestType string
 
 	// A client ID is required. The auth token will be added automatically.
 	request.Header.Set("Client-ID", c.config.ClientID)
+	return request, nil
+}
 
-	// Send the request
+// Create and send an HTTP request. Return the decoded JSON value of the HTTP body regardless of status code.
+func (c *Client) sendRequest(request *http.Request) (*Response, error) {
 	resp, err := c.conn.Do(request)
 	if err != nil {
 		return nil, err
