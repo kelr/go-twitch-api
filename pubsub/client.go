@@ -277,7 +277,7 @@ func (c *Client) handleWhispersEvent(message string, id string) error {
 		// Thread is not handled as of yet.
 		return nil
 	default:
-		return fmt.Errorf("Unknown whispers type: %d", tmp.Type)
+		return fmt.Errorf("Unknown whispers type: %s", tmp.Type)
 	}
 
 	// The data field is a double escaped JSON string so we need to unmarshal it twice.
@@ -299,7 +299,7 @@ func (c *Client) handleResponse(message []byte) error {
 		return err
 	}
 	if resp.Error != "" {
-		return fmt.Errorf("PubSub client received error response:%d", resp.Error)
+		return fmt.Errorf("PubSub client received error response: %s", resp.Error)
 	}
 	return nil
 }

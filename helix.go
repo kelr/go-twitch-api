@@ -13,7 +13,7 @@ type helixClient interface {
 	GetUsersFollows(opt *helix.GetUsersFollowsOpt) (*helix.GetUsersFollowsResponse, error)
 }
 
-// Config represents configuration options available to a Client.
+// HelixConfig represents configuration options available to a Client.
 type HelixConfig struct {
 	ClientID string
 	ClientSecret string
