@@ -14,20 +14,35 @@ const (
 	clientID     = ""
 	clientSecret = ""
 	redirectURI  = "http://twitch.tv"
-	userID       = ""
+	userID       = "31903323"
 	tokenFile    = "token.json"
 )
 
-func handleChannelPoints(event *pubsub.ChannelPointsEvent) {
-	fmt.Println(event.Data.Redemption.Reward.Title)
+func handleChannelPoints(event *pubsub.ChannelPointsData) {
+	fmt.Println("Got Channel Points event")
+	fmt.Println(event.Redemption.Reward.Title)
 }
 
-func handleModActions(event *pubsub.ChatModActionsEvent) {
-	fmt.Println(event.Data.ModerationAction, event.Data.TargetUserID)
+func handleModActions(event *pubsub.ChatModActionsData) {
+	fmt.Println("Got Mod Action event")
+	fmt.Println(event.CreatedBy, event.ModerationAction, event.Args)
 }
 
-func handleWhispers(event *pubsub.WhispersEvent) {
-	fmt.Println(event.Data.Tags.Login+":", event.Data.Body, "->", event.Data.Recipient.DisplayName)
+func handleWhispers(event *pubsub.WhispersData) {
+	fmt.Println("Got Whisper event")
+	fmt.Println(event.Tags.Login+":", event.Body, "->", event.Recipient.DisplayName)
+}
+
+func handleSubs(event *pubsub.SubsData) {
+	fmt.Println("Got Subs event")
+}
+
+func handleBits(event *pubsub.BitsData) {
+	fmt.Println("Got Bits event")
+}
+
+func handleBitsBadge(event *pubsub.BitsBadgeData) {
+	fmt.Println("Got Bits badge event")
 }
 
 func main() {
@@ -46,11 +61,15 @@ func main() {
 	}
 
 	// Create a PubSub client and listen to the topics.
-	client := pubsub.NewClient(config, token)
+	client := pubsub.NewClient(userID, token)
 
-	client.ListenChannelPoints(userID, handleChannelPoints)
-	client.ListenChatModActions(userID, handleModActions)
-	client.ListenWhispers(userID, handleWhispers)
+	client.ListenChannelPoints(handleChannelPoints)
+	client.ListenChatModActions(handleModActions)
+	client.ListenWhispers(handleWhispers)
+	client.ListenSubs(handleSubs)
+	client.ListenBits(handleBits)
+	client.ListenBitsBadge(handleBitsBadge)
+
 	client.Connect()
 	select {}
 }

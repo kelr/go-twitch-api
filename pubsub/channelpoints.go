@@ -1,7 +1,6 @@
 package pubsub
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -74,15 +73,10 @@ type RedemptionMaxPerStream struct {
 }
 
 // ListenChannelPoints subscribes a handler function to the Channel Points topic with the provided id.
-// The handler will be called with a populated ChannelPointsEvent struct when the event is received.
-func (c *Client) ListenChannelPoints(id string, handler func(*ChannelPointsEvent)) error {
-	if _, ok := c.channelPointHandlers[id]; !ok {
-		c.channelPointHandlers[id] = handler
-		if c.IsConnected() {
-			c.listen(&[]string{channelPointTopic + id})
-		}
-	} else {
-		return fmt.Errorf("Channel Points handler already registered for Id: %s", id)
+// The handler will be called with a populated ChannelPointsData struct when the event is received.
+func (c *Client) ListenChannelPoints(handler func(*ChannelPointsData)) {
+	c.channelPointHandler = handler
+	if c.IsConnected() {
+		c.listen(&[]string{channelPointTopic + c.ID})
 	}
-	return nil
 }
