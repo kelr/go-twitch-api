@@ -60,3 +60,12 @@ func (c *Client) ListenWhispers(handler func(*WhispersData)) {
 		c.listen(&[]string{whispersTopic + c.ID})
 	}
 }
+
+// UnlistenWhispers removes the current handler function from the Whispers event topic and
+// unlistens from the topic.
+func (c *Client) UnlistenWhispers() {
+	c.whispersHandler = nil
+	if c.IsConnected() {
+		c.unlisten(&[]string{whispersTopic + c.ID})
+	}
+}

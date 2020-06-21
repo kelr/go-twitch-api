@@ -22,3 +22,12 @@ func (c *Client) ListenSubs(handler func(*SubsData)) {
 		c.listen(&[]string{subsTopic + c.ID})
 	}
 }
+
+// UnlistenSubs removes the current handler function from the Subscriptions event topic and
+// unlistens from the topic.
+func (c *Client) UnlistenSubs() {
+	c.subsHandler = nil
+	if c.IsConnected() {
+		c.unlisten(&[]string{subsTopic + c.ID})
+	}
+}

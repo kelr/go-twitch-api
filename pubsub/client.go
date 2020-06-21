@@ -94,6 +94,9 @@ func (c *Client) IsConnected() bool {
 // Connect to the Twitch PubSub endpoint and listen on all registered topics.
 // Will automatically reconnect on failure.
 // with exponential backoff. Returns an error if the client is already connected.
+// Users of Client can call a Listen method for any topic at any time. If the
+// Client is not connected, all topics listened on will be subscribed on connection.
+// If the Client is connected, the topic will be subscribed on immediately.
 func (c *Client) Connect() error {
 	if !c.IsConnected() {
 		conn, _, err := websocket.DefaultDialer.Dial(pubSubURL, nil)
@@ -238,6 +241,23 @@ func (c *Client) listen(topics *[]string) {
 	}
 	request := pubSubRequest{
 		Type:  "LISTEN",
+		Nonce: generateNonce(15),
+		Data: pubsubRequestData{
+			Topics:    *topics,
+			AuthToken: c.AuthToken.AccessToken,
+		},
+	}
+	bytes, _ := json.Marshal(request)
+	c.sendChan <- bytes
+}
+
+// unlisten creates a unlisten request and sends it to the send channel.
+func (c *Client) unlisten(topics *[]string) {
+	for _, topic := range *topics {
+		fmt.Println("Unlistening:", topic)
+	}
+	request := pubSubRequest{
+		Type:  "UNLISTEN",
 		Nonce: generateNonce(15),
 		Data: pubsubRequestData{
 			Topics:    *topics,

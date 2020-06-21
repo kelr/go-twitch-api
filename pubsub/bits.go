@@ -24,6 +24,15 @@ func (c *Client) ListenBits(handler func(*BitsData)) {
 	}
 }
 
+// UnlistenBits removes the current handler function from the Bits event topic and
+// unlistens from the topic.
+func (c *Client) UnlistenBits() {
+	c.bitsHandler = nil
+	if c.IsConnected() {
+		c.unlisten(&[]string{bitsTopic + c.ID})
+	}
+}
+
 // BitsBadgeEvent contains the type and data payload for a bits badge event.
 type BitsBadgeEvent struct {
 	Type string        `json:"type"`
@@ -40,5 +49,14 @@ func (c *Client) ListenBitsBadge(handler func(*BitsBadgeData)) {
 	c.bitsBadgeHandler = handler
 	if c.IsConnected() {
 		c.listen(&[]string{bitsBadgeTopic + c.ID})
+	}
+}
+
+// UnlistenBitsBadge removes the current handler function from the Bits badge event topic and
+// unlistens from the topic.
+func (c *Client) UnlistenBitsBadge() {
+	c.bitsBadgeHandler = nil
+	if c.IsConnected() {
+		c.unlisten(&[]string{bitsBadgeTopic + c.ID})
 	}
 }
