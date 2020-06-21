@@ -206,12 +206,12 @@ func (c *Client) writer() {
 		case <-c.stop:
 			return
 		case msg := <-c.sendChan:
-			if err := c.write(msg); err != nil {
+			if err := c.conn.WriteMessage(websocket.TextMessage, msg); err != nil {
 				c.shutdown()
 				return
 			}
 		case <-pingTicker.C:
-			if err := c.write([]byte(pingMsg)); err != nil {
+			if err := c.conn.WriteMessage(websocket.TextMessage, []byte(pingMsg)); err != nil {
 				c.shutdown()
 				return
 			}
@@ -229,16 +229,6 @@ func (c *Client) writer() {
 			}()
 		}
 	}
-}
-
-// write calls WriteMessage on the underlying client.
-func (c *Client) write(msg []byte) error {
-	err := c.conn.WriteMessage(websocket.TextMessage, msg)
-	if err != nil {
-		fmt.Println("PubSub error in tx:", err)
-		return err
-	}
-	return nil
 }
 
 // listen creates a listen request and sends it to the send channel.
