@@ -14,7 +14,7 @@ const (
 	clientID     = ""
 	clientSecret = ""
 	redirectURI  = "http://twitch.tv"
-	userID       = "31903323"
+	userID       = ""
 	tokenFile    = "token.json"
 )
 
