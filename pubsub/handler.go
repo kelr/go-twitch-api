@@ -6,6 +6,22 @@ import (
 	"strings"
 )
 
+type pubSubEvent struct {
+	Type string     `json:"type,omitempty"`
+	Data pubSubData `json:"data,omitempty"`
+}
+
+type pubSubData struct {
+	Topic   string `json:"topic,omitempty"`
+	Message string `json:"message,omitempty"`
+}
+
+type pubSubResponse struct {
+	Type  string `json:"type"`
+	Nonce string `json:"nonce"`
+	Error string `json:"error"`
+}
+
 // handle determines the type of message and calls the corresponding handler.
 func (c *Client) handle(msg []byte) {
 	builtMsg := new(pubSubEvent)
@@ -14,7 +30,6 @@ func (c *Client) handle(msg []byte) {
 		fmt.Println(msg, err)
 		return
 	}
-	fmt.Println(builtMsg)
 	// Since the Message field is a string of encoded JSON, we have to
 	// determine the type of message and unmarshal the Message field specifically.
 	switch builtMsg.Type {
@@ -41,19 +56,19 @@ func (c *Client) handle(msg []byte) {
 				}
 			}
 		case subsTopic:
-			if c.whispersHandler != nil {
+			if c.subsHandler != nil {
 				if err = c.handleSubsEvent(builtMsg.Data.Message); err != nil {
 					fmt.Println(err)
 				}
 			}
 		case bitsTopic:
-			if c.whispersHandler != nil {
+			if c.bitsHandler != nil {
 				if err = c.handleBitsEvent(builtMsg.Data.Message); err != nil {
 					fmt.Println(err)
 				}
 			}
 		case bitsBadgeTopic:
-			if c.whispersHandler != nil {
+			if c.bitsBadgeHandler != nil {
 				if err = c.handleBitsBadgeEvent(builtMsg.Data.Message); err != nil {
 					fmt.Println(err)
 				}
@@ -125,12 +140,12 @@ func (c *Client) handleWhispersEvent(message string) error {
 }
 
 func (c *Client) handleSubsEvent(message string) error {
-	event := new(SubsEvent)
+	event := new(SubsData)
 	err := json.Unmarshal([]byte(message), event)
 	if err != nil {
 		return err
 	}
-	c.subsHandler(&event.Data)
+	c.subsHandler(event)
 	return nil
 }
 

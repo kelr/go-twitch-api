@@ -22,22 +22,6 @@ const (
 	maxReconnectTime = 600
 )
 
-type pubSubEvent struct {
-	Type string     `json:"type,omitempty"`
-	Data pubSubData `json:"data,omitempty"`
-}
-
-type pubSubData struct {
-	Topic   string `json:"topic,omitempty"`
-	Message string `json:"message,omitempty"`
-}
-
-type pubSubResponse struct {
-	Type  string `json:"type"`
-	Nonce string `json:"nonce"`
-	Error string `json:"error"`
-}
-
 type pubSubRequest struct {
 	Type  string            `json:"type"`
 	Nonce string            `json:"nonce"`
@@ -49,11 +33,18 @@ type pubsubRequestData struct {
 	AuthToken string   `json:"auth_token"`
 }
 
+// Websocket conn object interface for mocking
+type connection interface {
+	Close() error
+	ReadMessage() (messageType int, p []byte, err error)
+	WriteMessage(messageType int, data []byte) error
+}
+
 // Client represents a connection and its state to the Twitch pubsub endpoint.
 type Client struct {
 	AuthToken             *oauth2.Token
 	ID                    string
-	conn                  *websocket.Conn
+	conn                  connection
 	sendChan              chan []byte
 	stop                  chan bool
 	pongRx                chan bool
