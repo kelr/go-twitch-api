@@ -1,9 +1,5 @@
 package pubsub
 
-import (
-	"fmt"
-)
-
 const (
 	whispersTopic = "whispers."
 )
@@ -57,15 +53,10 @@ type WhispersRecipient struct {
 }
 
 // ListenWhispers subscribes a handler function to the Whispers topic with the provided id.
-// The handler will be called with a populated WhispersEvent struct when the event is received.
-func (c *Client) ListenWhispers(id string, handler func(*WhispersEvent)) error {
-	if _, ok := c.whispersHandlers[id]; !ok {
-		c.whispersHandlers[id] = handler
-		if c.IsConnected() {
-			c.listen(&[]string{whispersTopic + id})
-		}
-	} else {
-		return fmt.Errorf("Chat Mod Actions handler already registered for Id: %s", id)
+// The handler will be called with a populated WhispersData struct when the event is received.
+func (c *Client) ListenWhispers(handler func(*WhispersData)) {
+	c.whispersHandler = handler
+	if c.IsConnected() {
+		c.listen(&[]string{whispersTopic + c.ID})
 	}
-	return nil
 }
