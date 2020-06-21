@@ -22,22 +22,6 @@ const (
 	maxReconnectTime = 600
 )
 
-type pubSubEvent struct {
-	Type string     `json:"type,omitempty"`
-	Data pubSubData `json:"data,omitempty"`
-}
-
-type pubSubData struct {
-	Topic   string `json:"topic,omitempty"`
-	Message string `json:"message,omitempty"`
-}
-
-type pubSubResponse struct {
-	Type  string `json:"type"`
-	Nonce string `json:"nonce"`
-	Error string `json:"error"`
-}
-
 type pubSubRequest struct {
 	Type  string            `json:"type"`
 	Nonce string            `json:"nonce"`
@@ -49,11 +33,18 @@ type pubsubRequestData struct {
 	AuthToken string   `json:"auth_token"`
 }
 
+// Websocket conn object interface for mocking
+type connection interface {
+	Close() error
+	ReadMessage() (messageType int, p []byte, err error)
+	WriteMessage(messageType int, data []byte) error
+}
+
 // Client represents a connection and its state to the Twitch pubsub endpoint.
 type Client struct {
 	AuthToken             *oauth2.Token
 	ID                    string
-	conn                  *websocket.Conn
+	conn                  connection
 	sendChan              chan []byte
 	stop                  chan bool
 	pongRx                chan bool
@@ -94,6 +85,9 @@ func (c *Client) IsConnected() bool {
 // Connect to the Twitch PubSub endpoint and listen on all registered topics.
 // Will automatically reconnect on failure.
 // with exponential backoff. Returns an error if the client is already connected.
+// Users of Client can call a Listen method for any topic at any time. If the
+// Client is not connected, all topics listened on will be subscribed on connection.
+// If the Client is connected, the topic will be subscribed on immediately.
 func (c *Client) Connect() error {
 	if !c.IsConnected() {
 		conn, _, err := websocket.DefaultDialer.Dial(pubSubURL, nil)
@@ -206,12 +200,12 @@ func (c *Client) writer() {
 		case <-c.stop:
 			return
 		case msg := <-c.sendChan:
-			if err := c.write(msg); err != nil {
+			if err := c.conn.WriteMessage(websocket.TextMessage, msg); err != nil {
 				c.shutdown()
 				return
 			}
 		case <-pingTicker.C:
-			if err := c.write([]byte(pingMsg)); err != nil {
+			if err := c.conn.WriteMessage(websocket.TextMessage, []byte(pingMsg)); err != nil {
 				c.shutdown()
 				return
 			}
@@ -231,16 +225,6 @@ func (c *Client) writer() {
 	}
 }
 
-// write calls WriteMessage on the underlying client.
-func (c *Client) write(msg []byte) error {
-	err := c.conn.WriteMessage(websocket.TextMessage, msg)
-	if err != nil {
-		fmt.Println("PubSub error in tx:", err)
-		return err
-	}
-	return nil
-}
-
 // listen creates a listen request and sends it to the send channel.
 func (c *Client) listen(topics *[]string) {
 	for _, topic := range *topics {
@@ -248,6 +232,23 @@ func (c *Client) listen(topics *[]string) {
 	}
 	request := pubSubRequest{
 		Type:  "LISTEN",
+		Nonce: generateNonce(15),
+		Data: pubsubRequestData{
+			Topics:    *topics,
+			AuthToken: c.AuthToken.AccessToken,
+		},
+	}
+	bytes, _ := json.Marshal(request)
+	c.sendChan <- bytes
+}
+
+// unlisten creates a unlisten request and sends it to the send channel.
+func (c *Client) unlisten(topics *[]string) {
+	for _, topic := range *topics {
+		fmt.Println("Unlistening:", topic)
+	}
+	request := pubSubRequest{
+		Type:  "UNLISTEN",
 		Nonce: generateNonce(15),
 		Data: pubsubRequestData{
 			Topics:    *topics,

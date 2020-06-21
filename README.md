@@ -70,7 +70,7 @@ log.Println(email)
 
 ```go
 func handleChannelPoints(event *pubsub.ChannelPointsEvent) {
-	fmt.Println(event.Data.Redemption.Reward.Title)
+	fmt.Println(event.Redemption.Reward.Title)
 }
 
 func main() {
@@ -89,8 +89,8 @@ func main() {
 	}
 
 	// Create a PubSub client and listen to the topics.
-	client := pubsub.NewClient(config, token)
-	client.ListenChannelPoints(userID, handleChannelPoints)
+	client := pubsub.NewClient(userID, token)
+	client.ListenChannelPoints(handleChannelPoints)
 	client.Connect()
 	select {}
 }

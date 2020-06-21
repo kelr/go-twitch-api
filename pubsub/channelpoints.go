@@ -80,3 +80,12 @@ func (c *Client) ListenChannelPoints(handler func(*ChannelPointsData)) {
 		c.listen(&[]string{channelPointTopic + c.ID})
 	}
 }
+
+// UnlistenChannelPoints removes the current handler function from the channel points event topic and
+// unlistens from the topic.
+func (c *Client) UnlistenChannelPoints() {
+	c.channelPointHandler = nil
+	if c.IsConnected() {
+		c.unlisten(&[]string{channelPointTopic + c.ID})
+	}
+}

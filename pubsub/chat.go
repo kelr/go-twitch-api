@@ -30,3 +30,12 @@ func (c *Client) ListenChatModActions(handler func(*ChatModActionsData)) {
 		c.listen(&[]string{chatModActionsTopic + c.ID})
 	}
 }
+
+// UnlistenChatModActions removes the current handler function from the Chat Mod Actions event topic and
+// unlistens from the topic.
+func (c *Client) UnlistenChatModActions() {
+	c.chatModActionsHandler = nil
+	if c.IsConnected() {
+		c.unlisten(&[]string{chatModActionsTopic + c.ID})
+	}
+}
