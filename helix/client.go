@@ -87,7 +87,7 @@ func newAppAccessClient(cfg *Config) (*http.Client, error) {
 		return nil, err
 	}
 
-	return c.Client(context.Background()), err
+	return c.Client(context.Background()), nil
 }
 
 func newUserAccessClient(cfg *Config) *http.Client {
