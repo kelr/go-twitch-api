@@ -2,18 +2,19 @@
 package auth
 
 import (
-	"encoding/json"
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/twitch"
 	"io"
-	"os"
 	"net/url"
-	"bytes"
+	"os"
+	"strings"
 )
 
 const (
@@ -41,8 +42,8 @@ func NewUserAuth(clientID string, clientSecret string, redirectURI string, scope
 	return config, nil
 }
 
-// GetAuthCodeURL returns a URL to send to the end user for them to access 
-// as well as the state string embedded into the URL. 
+// GetAuthCodeURL returns a URL to send to the end user for them to access
+// as well as the state string embedded into the URL.
 // This is for OAuth User Token Flows.
 // Ensure that this state string matches the value received at the redirect URI.
 func GetAuthCodeURL(config *oauth2.Config) (string, string) {
@@ -50,18 +51,18 @@ func GetAuthCodeURL(config *oauth2.Config) (string, string) {
 	return config.AuthCodeURL(state, oauth2.AccessTypeOffline), state
 }
 
-// GetAuthTokenURL returns a URL to send to the end user for them to access 
-// as well as the state string embedded into the URL. 
+// GetAuthTokenURL returns a URL to send to the end user for them to access
+// as well as the state string embedded into the URL.
 // This is for OAuth Implicit Flows.
 // Ensure that this state string matches the value received at the redirect URI.
 func GetAuthTokenURL(config *oauth2.Config) (string, string) {
 	state, _ := generateState()
-	return config.authTokenURL(state), state
+	return authTokenURL(config, state), state
 }
 
 func authTokenURL(config *oauth2.Config, state string) string {
 	var buf bytes.Buffer
-	buf.WriteString(c.Endpoint.AuthURL)
+	buf.WriteString(config.Endpoint.AuthURL)
 	u := url.Values{
 		"response_type": {"token"},
 		"client_id":     {config.ClientID},
@@ -152,7 +153,7 @@ func VerifyToken(config *oauth2.Config, oldToken *oauth2.Token) *oauth2.Token {
 	tokenSource := config.TokenSource(oauth2.NoContext, oldToken)
 	newToken, err := tokenSource.Token()
 	if err != nil {
-	    fmt.Println(err)
+		fmt.Println(err)
 	}
 	return newToken
 }
@@ -185,4 +186,3 @@ func generateState() (string, error) {
 
 	return hex.EncodeToString(buf[:]), nil
 }
-
