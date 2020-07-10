@@ -12,6 +12,8 @@ import (
 	"golang.org/x/oauth2/twitch"
 	"io"
 	"os"
+	"net/url"
+	"bytes"
 )
 
 const (
@@ -39,10 +41,51 @@ func NewUserAuth(clientID string, clientSecret string, redirectURI string, scope
 	return config, nil
 }
 
-// GetAuthCodeURL returns a URL to send to the end user for them to access as well as the state string embedded into the URL. Ensure that this state string matches the value received at the redirect URI.
+// GetAuthCodeURL returns a URL to send to the end user for them to access 
+// as well as the state string embedded into the URL. 
+// This is for OAuth User Token Flows.
+// Ensure that this state string matches the value received at the redirect URI.
 func GetAuthCodeURL(config *oauth2.Config) (string, string) {
 	state, _ := generateState()
 	return config.AuthCodeURL(state, oauth2.AccessTypeOffline), state
+}
+
+// GetAuthTokenURL returns a URL to send to the end user for them to access 
+// as well as the state string embedded into the URL. 
+// This is for OAuth Implicit Flows.
+// Ensure that this state string matches the value received at the redirect URI.
+func GetAuthTokenURL(config *oauth2.Config) (string, string) {
+	state, _ := generateState()
+	return config.authTokenURL(state), state
+}
+
+func authTokenURL(config *oauth2.Config, state string) string {
+	var buf bytes.Buffer
+	buf.WriteString(c.Endpoint.AuthURL)
+	u := url.Values{
+		"response_type": {"token"},
+		"client_id":     {config.ClientID},
+	}
+
+	if config.RedirectURL != "" {
+		u.Set("redirect_uri", config.RedirectURL)
+	}
+
+	if len(config.Scopes) > 0 {
+		u.Set("scope", strings.Join(config.Scopes, " "))
+	}
+
+	if state != "" {
+		u.Set("state", state)
+	}
+
+	if strings.Contains(config.Endpoint.AuthURL, "?") {
+		buf.WriteByte('&')
+	} else {
+		buf.WriteByte('?')
+	}
+	buf.WriteString(u.Encode())
+	return buf.String()
 }
 
 // TokenExchange conducts the exchange to turn an auth code into a user token. The OAuth2 config used to create the auth code must be the same.

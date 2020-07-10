@@ -35,10 +35,12 @@ func handleWhispers(event *pubsub.WhispersData) {
 
 func handleSubs(event *pubsub.SubsData) {
 	fmt.Println("Got Subs event")
+	fmt.Println(event.Username, event.RecipientUsername)
 }
 
 func handleBits(event *pubsub.BitsData) {
 	fmt.Println("Got Bits event")
+	fmt.Println(event.Username, event.BitsUsed)
 }
 
 func handleBitsBadge(event *pubsub.BitsBadgeData) {

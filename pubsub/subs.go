@@ -26,6 +26,7 @@ type SubsData struct {
 	Months               int            `json:"months"`
 	Context              string         `json:"context"`
 	IsGift               bool           `json:"is_gift"`
+	MultiMonthDuration   int			`json:"multi_month_duration"`
 }
 
 // SubMessageData represents data in a sub message.
