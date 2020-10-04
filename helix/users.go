@@ -11,6 +11,7 @@ const (
 	getUsersFollowsPath          = "/users/follows"
 	getUsersExtensionsPath       = "/users/extensions/list"
 	getUsersActiveExtensionsPath = "/users/extensions"
+	getModsPath					 = "/moderation/moderators"
 )
 
 // PaginationData represents the current ID for a multi-page response.
@@ -220,5 +221,46 @@ func (client *Client) GetUserActiveExtensions(opt *GetUserActiveExtensionsOpt) (
 	if err != nil {
 		return nil, err
 	}
+	return data, nil
+}
+
+
+// GetModsOpt defines the options available for Get Moderators.
+type GetModsOpt struct {
+	BroadcasterId    string `url:"broadcaster_id,omitempty"`
+	UserId string `url:"user_id,omitempty"`
+	After string `url:"after,omitempty"`
+}
+
+// GetModsData represents information moderators of a channel.
+type GetModsData struct {
+	UserId              string `json:"user_id,omitempty"`
+	UserName           string `json:"user_name,omitempty"`
+}
+
+// GetModsResponse represents a response from a Get Users command
+type GetModsResponse struct {
+	Data []GetModsData `json:"data,omitempty"`
+	Pagination PaginationData        `json:"pagination,omitempty"`
+}
+
+// GetModerators returns information about a Twitch channel's mods.
+// Returns a GetModsResponse constructed from the response from the API endpoint.
+//
+// https://dev.twitch.tv/docs/api/reference#get-moderators
+func (client *Client) GetModerators(opt *GetModsOpt) (*GetModsResponse, error) {
+	data := new(GetModsResponse)
+
+	resp, err := client.getRequest(getModsPath, opt)
+	if err != nil {
+		return nil, err
+	}
+
+	// Decode the response
+	err = json.Unmarshal(resp.Data, data)
+	if err != nil {
+		return nil, err
+	}
+
 	return data, nil
 }
