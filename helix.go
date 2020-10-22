@@ -7,10 +7,13 @@ import (
 	"github.com/kelr/gundyr/helix"
 )
 
+var pageMem = make(map[string]int)
+
 // Interface to allow for mocking a Helix Client.
 type helixClient interface {
 	GetUsers(opt *helix.GetUsersOpt) (*helix.GetUsersResponse, error)
 	GetUsersFollows(opt *helix.GetUsersFollowsOpt) (*helix.GetUsersFollowsResponse, error)
+	GetClips(opt *helix.GetClipsOpt) (*helix.GetClipsResponse, error)
 }
 
 // HelixConfig represents configuration options available to a Client.
@@ -164,4 +167,47 @@ func (c *Helix) GetFollowers(userID string) ([]string, error) {
 		}
 	}
 	return followers, nil
+}
+
+func (c *Helix) GetAllClips(broadcasterID string, after string) ([]helix.GetClipsData, error) {
+	var clips []helix.GetClipsData
+
+	opt := &helix.GetClipsOpt{
+		BroadcasterID: broadcasterID,
+		StartedAt: after,
+		First: 100,
+	}
+
+	response, err := c.client.GetClips(opt)
+	if err != nil {
+		return nil, err
+	}
+
+	// Drain all the clips by checking each page until there are none left.
+	for len(response.Data) > 0 {
+		if _, ok := pageMem[response.Pagination.Cursor]; ok {
+			pageMem = make(map[string]int)
+			return clips, nil
+		}
+
+		for _, c := range response.Data {
+			clips = append(clips, c)
+		}
+
+		pageMem[response.Pagination.Cursor] = 1
+
+		opt = &helix.GetClipsOpt{
+			BroadcasterID: broadcasterID,
+			After: response.Pagination.Cursor,
+			StartedAt: after,
+			First: 100,
+		}
+
+		response, err = c.client.GetClips(opt)
+		if err != nil {
+			return nil, err
+		}
+	}
+	pageMem = make(map[string]int)
+	return clips, nil
 }
