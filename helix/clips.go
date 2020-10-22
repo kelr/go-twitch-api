@@ -13,6 +13,9 @@ type GetClipsOpt struct {
 	ID            string `url:"id,omitempty"`
 	BroadcasterID string `url:"broadcaster_id,omitempty"`
 	GameID        string `url:"game_id,omitempty"`
+	After         string `url:"after,omitempty"`
+	First         int    `url:"first,omitempty"`
+	StartedAt     string `url:"started_at,omitempty"`
 }
 
 // GetClipsData represents metadata about a clip.
@@ -21,7 +24,7 @@ type GetClipsData struct {
 	URL             string `json:"url,omitempty"`
 	EmbedURL        string `json:"embed_url,omitempty"`
 	BroadcasterID   string `json:"broadcaster_id,omitempty"`
-	BroadcasterName string `json:"braodcaster_name,omitempty"`
+	BroadcasterName string `json:"broadcaster_name,omitempty"`
 	CreatorID       string `json:"creator_id,omitempty"`
 	CreatorName     string `json:"creator_name,omitempty"`
 	VideoID         string `json:"video_id,omitempty"`
