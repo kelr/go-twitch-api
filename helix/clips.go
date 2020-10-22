@@ -16,6 +16,7 @@ type GetClipsOpt struct {
 	After         string `url:"after,omitempty"`
 	First         int    `url:"first,omitempty"`
 	StartedAt     string `url:"started_at,omitempty"`
+	EndedAt       string `url:"ended_at,omitempty"`
 }
 
 // GetClipsData represents metadata about a clip.
