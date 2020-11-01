@@ -33,7 +33,7 @@ func newMockClient(cfg *Config, tokenType string, respStatus int, respBody []byt
 		conn: &mockHTTPClient{
 			response: newMockResponse(respStatus, respBody),
 		},
-		config: cfg,
+		config:    cfg,
 		tokenType: tokenType,
 	}
 }
@@ -41,37 +41,37 @@ func newMockClient(cfg *Config, tokenType string, respStatus int, respBody []byt
 // Tests that the HTTP request and header are properly constructed.
 func TestBuildRequest(t *testing.T) {
 	cases := []struct {
-		inputOpts interface{}
-		inputBaseURL string
+		inputOpts        interface{}
+		inputBaseURL     string
 		expectedClientID string
-		expectedURL string
-		expectedMethod string
+		expectedURL      string
+		expectedMethod   string
 	}{
 		{
 			inputOpts: &GetUsersOpt{
 				ID:    []string{"123456789", "987654321"},
 				Login: []string{"dallas", "kyrotobi"},
 			},
-			inputBaseURL: getUsersPath,
+			inputBaseURL:     getUsersPath,
 			expectedClientID: "test-client-id",
-			expectedURL: "https://api.twitch.tv/helix/users?id=123456789&id=987654321&login=dallas&login=kyrotobi",
-			expectedMethod: http.MethodGet,
+			expectedURL:      "https://api.twitch.tv/helix/users?id=123456789&id=987654321&login=dallas&login=kyrotobi",
+			expectedMethod:   http.MethodGet,
 		},
 		{
-			inputOpts: nil,
-			inputBaseURL: getUsersPath,
+			inputOpts:        nil,
+			inputBaseURL:     getUsersPath,
 			expectedClientID: "test-client-id",
-			expectedURL: "https://api.twitch.tv/helix/users",
-			expectedMethod: http.MethodGet,
+			expectedURL:      "https://api.twitch.tv/helix/users",
+			expectedMethod:   http.MethodGet,
 		},
 		{
 			inputOpts: &GetUsersOpt{
 				Login: []string{"kyrotobi", "kyrotobi", "kyrotobi", "kyrotobi", "kyrotobi", "kyrotobi"},
 			},
-			inputBaseURL: getUsersPath,
+			inputBaseURL:     getUsersPath,
 			expectedClientID: "",
-			expectedURL: "https://api.twitch.tv/helix/users?login=kyrotobi&login=kyrotobi&login=kyrotobi&login=kyrotobi&login=kyrotobi&login=kyrotobi",
-			expectedMethod: http.MethodGet,
+			expectedURL:      "https://api.twitch.tv/helix/users?login=kyrotobi&login=kyrotobi&login=kyrotobi&login=kyrotobi&login=kyrotobi&login=kyrotobi",
+			expectedMethod:   http.MethodGet,
 		},
 	}
 

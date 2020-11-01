@@ -3,8 +3,8 @@ package gundyr
 
 import (
 	"errors"
-	"golang.org/x/oauth2"
 	"github.com/kelr/gundyr/helix"
+	"golang.org/x/oauth2"
 )
 
 var pageMem = make(map[string]int)
@@ -18,11 +18,11 @@ type helixClient interface {
 
 // HelixConfig represents configuration options available to a Client.
 type HelixConfig struct {
-	ClientID string
+	ClientID     string
 	ClientSecret string
-	Scopes []string
-	RedirectURI string
-	Token *oauth2.Token
+	Scopes       []string
+	RedirectURI  string
+	Token        *oauth2.Token
 }
 
 // Helix is a wrapper over a HelixClient. See https://godoc.org/github.com/kelr/gundyr/helix for the underlying HelixClient.
@@ -174,8 +174,8 @@ func (c *Helix) GetAllClips(broadcasterID string, after string) ([]helix.GetClip
 
 	opt := &helix.GetClipsOpt{
 		BroadcasterID: broadcasterID,
-		StartedAt: after,
-		First: 100,
+		StartedAt:     after,
+		First:         100,
 	}
 
 	response, err := c.client.GetClips(opt)
@@ -198,9 +198,9 @@ func (c *Helix) GetAllClips(broadcasterID string, after string) ([]helix.GetClip
 
 		opt = &helix.GetClipsOpt{
 			BroadcasterID: broadcasterID,
-			After: response.Pagination.Cursor,
-			StartedAt: after,
-			First: 100,
+			After:         response.Pagination.Cursor,
+			StartedAt:     after,
+			First:         100,
 		}
 
 		response, err = c.client.GetClips(opt)
