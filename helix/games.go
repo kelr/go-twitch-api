@@ -16,7 +16,7 @@ type GetGamesOpt struct {
 
 // GetGamesData represents metadata about a game.
 type GetGamesData struct {
-	BoxArtURL string `json:"box_art_url,omitempty`
+	BoxArtURL string `json:"box_art_url,omitempty"`
 	ID        string `json:"id,omitempty"`
 	Name      string `json:"name,omitempty"`
 }
