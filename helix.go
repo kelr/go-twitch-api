@@ -14,6 +14,7 @@ type helixClient interface {
 	GetUsers(opt *helix.GetUsersOpt) (*helix.GetUsersResponse, error)
 	GetUsersFollows(opt *helix.GetUsersFollowsOpt) (*helix.GetUsersFollowsResponse, error)
 	GetClips(opt *helix.GetClipsOpt) (*helix.GetClipsResponse, error)
+	GetVideos(opt *helix.GetVideosOpt) (*helix.GetVideosResponse, error)
 }
 
 // HelixConfig represents configuration options available to a Client.
