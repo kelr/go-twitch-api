@@ -211,3 +211,44 @@ func (c *Helix) GetAllClips(broadcasterID string, after string) ([]helix.GetClip
 	pageMem = make(map[string]int)
 	return clips, nil
 }
+
+func (c *Helix) GetAllVideos(broadcasterID string) ([]helix.GetVideosData, error) {
+	var videos []helix.GetVideosData
+
+	opt := &helix.GetVideosOpt{
+		UserID: broadcasterID,
+		First:  "100",
+	}
+
+	response, err := c.client.GetVideos(opt)
+	if err != nil {
+		return nil, err
+	}
+
+	// Drain all the videos by checking each page until there are none left.
+	for len(response.Data) > 0 {
+		if _, ok := pageMem[response.Pagination.Cursor]; ok {
+			pageMem = make(map[string]int)
+			return videos, nil
+		}
+
+		for _, c := range response.Data {
+			videos = append(videos, c)
+		}
+
+		pageMem[response.Pagination.Cursor] = 1
+
+		opt = &helix.GetVideosOpt{
+			UserID: broadcasterID,
+			After:  response.Pagination.Cursor,
+			First:  "100",
+		}
+
+		response, err = c.client.GetVideos(opt)
+		if err != nil {
+			return nil, err
+		}
+	}
+	pageMem = make(map[string]int)
+	return videos, nil
+}
